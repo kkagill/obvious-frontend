@@ -1,7 +1,7 @@
 import LoadingSpinner from '@/components/LoadingSpinner';
 import apiClient from '@/libs/api';
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 interface ReviewProps {
   address: string;
@@ -11,7 +11,9 @@ interface ReviewProps {
   selectedImages: File[];
   selectedVideos: File[];
   role: string;
-  previousStep: () => void; 
+  previousStep: () => void;
+  handleGoBack: () => void;
+  setHasUploaded: (flag: boolean) => void;
 }
 
 const Review: React.FC<ReviewProps> = ({
@@ -23,11 +25,17 @@ const Review: React.FC<ReviewProps> = ({
   selectedVideos,
   role,
   previousStep,
+  handleGoBack,
+  setHasUploaded,
 }) => {
+  const maxAttempts = 1;
+
   const [loading, setLoading] = useState<boolean>(true);
   const [isUploading, setIsUploading] = useState(false);
   const [totalCredits, setTotalCredits] = useState(0);
   const [totalVideoSeconds, setTotalVideoSeconds] = useState(0);
+  const [attempts, setAttempts] = useState(0);
+  const [uploadFailed, setUploadFailed] = useState(false);
 
   const emailLabel = role === 'Tenant' ? "Landlord Email:" : "Tenant Email:";
 
@@ -73,12 +81,12 @@ const Review: React.FC<ReviewProps> = ({
   }, [selectedImages, selectedVideos]);
 
   const onUpload = async () => {
-    // video is optional
     if (selectedImages.length === 0) {
       return;
     }
 
     setIsUploading(true);
+    setUploadFailed(false);
     const formData = new FormData();
 
     formData.append('role', role);
@@ -103,11 +111,19 @@ const Review: React.FC<ReviewProps> = ({
     try {
       await apiClient.post('/s3', formData);
       setIsUploading(false);
-      toast.success('Upload successful!');
+      setHasUploaded(true);
+      handleGoBack();
     } catch (error) {
+      setAttempts((prevAttempts) => prevAttempts + 1);
       setIsUploading(false);
-      toast.error('Upload failed, please try again.');
-      console.log('imageUpload' + error);
+      setUploadFailed(true);
+      if (attempts === maxAttempts) {
+        toast.error('Upload failed after multiple attempts.', { duration: 5000 });
+        setTimeout(() => {
+          setAttempts(0);
+          handleGoBack();
+        }, 5000);
+      }
     }
   };
 
@@ -119,7 +135,7 @@ const Review: React.FC<ReviewProps> = ({
     <div className="flex items-center justify-center min-h-screen">
       <div className="relative container mx-auto max-w-5xl py-10 px-4 sm:px-6 lg:px-8">
         {isUploading && (
-          <LoadingSpinner text="Uploading. Please do not close your browser until the upload has completed." />
+          <LoadingSpinner text="Uploading. Do not close your browser until the upload is complete." />
         )}
         <div className={`bg-transparent sm:bg-white sm:shadow-lg sm:rounded-lg sm:p-8 ${isUploading ? 'blur-md' : ''}`}>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 text-center text-gray-800">
@@ -183,12 +199,23 @@ const Review: React.FC<ReviewProps> = ({
               className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300">
               Back
             </button>
-            <button
-              onClick={() => { onUpload(); }}
-              className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300}`}
-            >
-              Upload
-            </button>
+            {!uploadFailed ? (
+              <button
+                onClick={() => { onUpload(); }}
+                className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300}`}
+              >
+                Confirm Payment
+              </button>
+            ) : (
+              <button
+                onClick={() => { onUpload(); }}
+                className={`${attempts >= 3 ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-700'
+                  } text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300`}
+                disabled={attempts >= 3}
+              >
+                Upload Again
+              </button>
+            )}
           </div>
         </div>
       </div>

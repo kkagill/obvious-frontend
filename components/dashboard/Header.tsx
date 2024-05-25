@@ -8,9 +8,10 @@ interface HeaderProps {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setTitle: React.Dispatch<React.SetStateAction<string>>;
   setContent: React.Dispatch<React.SetStateAction<React.ReactNode>>;
+  hasUploaded: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ setIsModalOpen, setTitle, setContent }) => {
+const Header: React.FC<HeaderProps> = ({ setIsModalOpen, setTitle, setContent, hasUploaded }) => {
   const [availableCredits, setAvailableCredits] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -29,6 +30,13 @@ const Header: React.FC<HeaderProps> = ({ setIsModalOpen, setTitle, setContent })
   useEffect(() => {
     fetchAvailableCredits();
   }, [fetchAvailableCredits]);
+
+  // Refetch available credits when hasUploaded changes
+  useEffect(() => {
+    if (hasUploaded) {
+      fetchAvailableCredits();
+    }
+  }, [hasUploaded]);
 
   const handleCreditsClick = () => {
     setTitle("Prevent disputes before they arise");

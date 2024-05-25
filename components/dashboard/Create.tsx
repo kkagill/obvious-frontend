@@ -14,11 +14,12 @@ import Review from "./steps/Review";
 
 interface CreateProps {
   handleGoBack: () => void;
+  setHasUploaded: (flag: boolean) => void;
 }
 
 const TOTAL_STEPS = 7;
 
-const Create: React.FC<CreateProps> = ({ handleGoBack }) => {
+const Create: React.FC<CreateProps> = ({ handleGoBack, setHasUploaded }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [role, setRole] = useState<string>('');
   const [address, setAddress] = useState<string>('');
@@ -112,6 +113,8 @@ const Create: React.FC<CreateProps> = ({ handleGoBack }) => {
                 selectedVideos={selectedVideos}
                 role={role}
                 previousStep={previousStep}
+                handleGoBack={handleGoBack}
+                setHasUploaded={setHasUploaded}
               />
             )}
           </section>

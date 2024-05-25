@@ -57,7 +57,7 @@ const Read: React.FC = () => {
           </p>
           <ul className="list-disc list-inside mb-4 pl-4">
             <li><strong>Send Copies to Your Landlord:</strong> We will request your landlord's email address and send them the uploaded images along with proof of upload to the blockchain. This provides a record of the property's condition at move-in.</li>
-            <li><strong>Document Pre-Existing Damage:</strong> Create a written list of any pre-existing damage and have your landlord acknowledge it. You can upload this to blockchain as well.</li>
+            <li><strong>Document Pre-Existing Damage:</strong> Create a written list of any pre-existing damage and have your landlord acknowledge it. You can upload this as an image file.</li>
           </ul>
         </div>
       ) : (
@@ -87,7 +87,7 @@ const Read: React.FC = () => {
           </p>
           <ul className="list-disc list-inside mb-4 pl-4">
             <li><strong>Send Copies to the Tenant:</strong> We will request your tenant's email address and send them the uploaded images along with proof of upload to the blockchain. This provides a record of the property's condition at move-in.</li>
-            <li><strong>Create a Move-In Checklist:</strong> Use a checklist to document the condition of the property during the move-in inspection with the tenant. Have the tenant sign the checklist to acknowledge the property’s condition. You can upload this to blockchain as well.</li>
+            <li><strong>Create a Move-In Checklist:</strong> Use a checklist to document the condition of the property during the move-in inspection with the tenant. Have the tenant sign the checklist to acknowledge the property’s condition. You can upload this as an image file.</li>
           </ul>
         </div>
       )}

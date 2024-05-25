@@ -77,14 +77,6 @@ model Currency {
   updatedAt DateTime @updatedAt
 }
 
-// model OpenCaseItemPriceUpdate {
-//   id             String    @id @default(cuid())
-//   marketHashName String
-//   price          Decimal   @db.Decimal(12, 2)
-//   createdAt      DateTime  @default(now())
-//   updatedAt      DateTime? @updatedAt
-// }
-
 // ////////////////////////////////////////////////////////////
 // //                                                        //
 // //                          ENUMS                         //
@@ -93,7 +85,6 @@ model Currency {
 
 enum RecordStatus {
   PENDING
-  FAILED_VIDEO_UPLOAD
   UPLOADED_TO_S3
   UPLOADED_TO_IPFS
   UPLOADED_TO_EVM
