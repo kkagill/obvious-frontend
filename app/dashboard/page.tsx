@@ -9,6 +9,7 @@ import Record from "@/components/dashboard/Record";
 import { AiOutlineUpload } from "react-icons/ai";
 import apiClient from "@/libs/api";
 import { FaSpinner } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -52,7 +53,9 @@ const Dashboard = () => {
   useEffect(() => {
     if (hasUploaded) {
       fetchRecords();
+      toast.success("Upload successful! We'll notify you once your files are fully uploaded to the blockchain.", { duration: 7000 });
       setHasUploaded(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [hasUploaded]);
 
