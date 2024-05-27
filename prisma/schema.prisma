@@ -1,11 +1,15 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
-}
+// https://supabase.com/partners/integrations/prisma
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["public", "auth"]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 model User {
@@ -19,6 +23,8 @@ model User {
 
   records               Record[]
   creditPurchaseHistory CreditPurchaseHistory[]
+
+  @@schema("auth")
 }
 
 model CreditPurchaseHistory {
@@ -31,28 +37,34 @@ model CreditPurchaseHistory {
   updatedAt DateTime @updatedAt
 
   User User @relation(fields: [userId], references: [id])
+
+  @@schema("auth")
 }
 
 model Record {
-  id              BigInt       @id @default(autoincrement())
-  userId          String
-  role            String
-  rentalAddress   String
-  securityDeposit Int
-  currency        String
-  otherPartyEmail String
-  creditsCharged  Int
-  numImages       Int
-  numVideos       Int?
-  totalSeconds    Int?
-  s3FolderName    String
-  status          RecordStatus @default(PENDING)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id                BigInt       @id @default(autoincrement())
+  userId            String
+  role              String
+  rentalAddress     String
+  securityDeposit   Int
+  currency          String
+  otherPartyEmail   String
+  creditsCharged    Int
+  numImages         Int
+  numVideos         Int?
+  totalSeconds      Int?
+  totalImagesSizeMB Decimal      @db.Decimal(7, 2)
+  totalVideosSizeMB Decimal?     @db.Decimal(7, 2)
+  s3FolderName      String
+  status            RecordStatus @default(PENDING)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   files File[]
 
   User User @relation(fields: [userId], references: [id])
+
+  @@schema("auth")
 }
 
 model File {
@@ -60,6 +72,7 @@ model File {
   recordId      BigInt
   fileName      String
   fileExtension String
+  fileSize      Decimal          @db.Decimal(7, 2)
   s3Key         String
   s3Location    String
   ipfsHash      String?
@@ -69,6 +82,8 @@ model File {
   updatedAt     DateTime         @updatedAt
 
   Record Record @relation(fields: [recordId], references: [id])
+
+  @@schema("auth")
 }
 
 model Currency {
@@ -76,6 +91,8 @@ model Currency {
   currency  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@schema("public")
 }
 
 // ////////////////////////////////////////////////////////////
@@ -89,15 +106,21 @@ enum RecordStatus {
   UPLOADED_TO_S3
   UPLOADED_TO_IPFS
   UPLOADED_TO_EVM
+
+  @@schema("auth")
 }
 
 enum FileUploadStatus {
   PENDING
   UPLOADED_TO_S3
   UPLOADED_TO_IPFS
+
+  @@schema("auth")
 }
 
 enum FileType {
   IMAGE
   VIDEO
+
+  @@schema("auth")
 }

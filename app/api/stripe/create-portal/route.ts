@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { createCustomerPortal } from "@/libs/stripe";
+import prisma from "@/libs/prisma";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,14 +27,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session?.user?.id,
+      },
+    });
 
-    const { data } = await supabase
-      .from("user")
-      .select("*")
-      .eq("id", session?.user?.id)
-      .single();
-
-    if (!data?.customerId) {
+    if (!user?.customerId) {
       return NextResponse.json(
         {
           error: "You don't have a billing account yet. Make a purchase first.",
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
     }
 
     const stripePortalUrl = await createCustomerPortal({
-      customerId: data.customerId,
+      customerId: user.customerId,
       returnUrl: body.returnUrl,
     });
 

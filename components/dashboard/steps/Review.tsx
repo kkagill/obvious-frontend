@@ -83,6 +83,14 @@ const Review: React.FC<ReviewProps> = ({
     calculateCredits();
   }, [selectedImages, selectedVideos]);
 
+  const calculateTotalSize = (files: File[]) => {
+    return files.reduce((total, file) => total + file.size, 0);
+  };
+
+  const bytesToMB = (bytes: number) => {
+    return bytes / (1024 * 1024);
+  };
+
   const uploadFileToS3 = async (file: File, url: string, key: string, index: number) => {
     return new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -166,11 +174,21 @@ const Review: React.FC<ReviewProps> = ({
       const uploadedFiles = files.map((fileData, index) => ({
         fileName: fileData.file.name,
         fileExtension: fileData.file.type.split('/')[1],
+        fileSize: bytesToMB(fileData.file.size).toFixed(2),
         s3Key: fileData.key,
         s3Location: fileData.url,
         type: index < selectedImages.length ? 'IMAGE' : 'VIDEO',
       }));
 
+      const totalImageSizeBytes = calculateTotalSize(selectedImages);
+      const totalVideoSizeBytes = calculateTotalSize(selectedVideos);
+      console.log({ totalImageSizeBytes })
+      console.log({ totalVideoSizeBytes })
+      // Convert to MB and fix to 2 decimal places
+      const totalImageSizeMB = bytesToMB(totalImageSizeBytes).toFixed(2);
+      const totalVideoSizeMB = bytesToMB(totalVideoSizeBytes).toFixed(2);
+      console.log({ totalImageSizeMB })
+      console.log({ totalVideoSizeMB })
       await apiClient.post('/s3/upload', {
         role,
         address,
@@ -181,6 +199,8 @@ const Review: React.FC<ReviewProps> = ({
         totalVideoSeconds,
         s3FolderName,
         uploadedFiles,
+        totalImageSizeMB,
+        totalVideoSizeMB
       });
 
       setIsUploading(false);

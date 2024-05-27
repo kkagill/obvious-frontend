@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { createCheckout } from "@/libs/stripe";
 import prisma from "@/libs/prisma";
+import config from "@/config";
 
 // This function is used to create a Stripe Checkout Session (one-time payment or subscription)
 // It's called by the <ButtonCheckout /> component
@@ -48,44 +49,55 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Search for a profile with unique ID equals to the user session ID (in table called 'user')
-    const { data } = await supabase
-      .from("User")
-      .select("*")
-      .eq("id", session?.user?.id)
-      .single();
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session?.user?.id,
+      },
+    });
 
-    // If no profile found, create one. This is used to store the Stripe customer ID
-    if (!data) {
-      // const result = await supabase.from("User").insert([
-      //   {
-      //     id: session.user.id,
-      //     //price_id: body.priceId,
-      //     email: session?.user?.email,
-      //   },
-      // ]);
-      const user1 = await prisma.user.create({
-        data: {
-          id: session.user.id,
-          email: session?.user?.email,
-        },
-      });
-      console.log({ user1 })
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found." },
+        { status: 400 }
+      );
     }
 
-    const stripeSessionURL = await createCheckout({
-      priceId,
-      mode,
-      successUrl,
-      cancelUrl,
-      clientReferenceId: session.user.id,
-      user: {
-        email: session?.user?.email,
-        // If the user has already purchased, it will automatically prefill it's credit card
-        customerId: data?.customerId,
-      },
-      // If you send coupons from the frontend, you can pass it here
-      // couponId: body.couponId,
+    const plan = findPlanDetails(body.priceId);
+
+    const stripeSessionURL = await prisma.$transaction(async (prisma) => {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: {
+          availableCredits: {
+            increment: plan.credits,
+          },
+        },
+      });
+
+      await prisma.creditPurchaseHistory.create({
+        data: {
+          userId: session.user.id,
+          priceId: body.priceId,
+          credits: plan.credits,
+          price: plan.price,
+        },
+      });
+
+      const stripeSessionURL = await createCheckout({
+        priceId,
+        mode,
+        successUrl,
+        cancelUrl,
+        clientReferenceId: session.user.id,
+        user: {
+          email: session?.user?.email,
+          // If the user has already purchased, it will automatically prefill it's credit card
+          customerId: user?.customerId,
+        },
+        // If you send coupons from the frontend, you can pass it here
+        // couponId: body.couponId,
+      });
+      return stripeSessionURL;
     });
 
     return NextResponse.json({ url: stripeSessionURL });
@@ -94,3 +106,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e?.message }, { status: 500 });
   }
 }
+
+const findPlanDetails = (priceId: string) => {
+  const plan = config.stripe.plans.find((plan) => plan.priceId === priceId);
+  if (!plan) {
+    throw new Error(`No plan found for priceId: ${priceId}`);
+  }
+  return plan;
+};

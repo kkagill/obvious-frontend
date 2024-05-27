@@ -9,6 +9,7 @@ import prisma from '@/libs/prisma';
 interface UploadedFile {
   fileName: string;
   fileExtension: string;
+  fileSize: string;
   s3Key: string;
   s3Location: string;
   type: 'IMAGE' | 'VIDEO';
@@ -56,6 +57,8 @@ export async function POST(req: NextRequest) {
       totalVideoSeconds,
       s3FolderName,
       uploadedFiles,
+      totalImageSizeMB,
+      totalVideoSizeMB
     }: {
       role: string;
       address: string;
@@ -66,6 +69,8 @@ export async function POST(req: NextRequest) {
       totalVideoSeconds: string;
       s3FolderName: string;
       uploadedFiles: UploadedFile[];
+      totalImageSizeMB: string;
+      totalVideoSizeMB: string;
     } = data;
 
     const cookieStore = cookies();
@@ -87,9 +92,13 @@ export async function POST(req: NextRequest) {
     const securityDepositAmountInt = parseInt(securityDepositAmount, 10);
     const totalCreditsInt = parseInt(totalCredits, 10);
     const totalVideoSecondsInt = parseInt(totalVideoSeconds, 10);
-
+    const totalImageSizeMBInt = parseFloat(totalImageSizeMB);
+    const totalVideoSizeMBInt = parseFloat(totalVideoSizeMB);
+    console.log({ totalImageSizeMBInt })
+    console.log({ totalVideoSizeMBInt })
     if (!role || !address || isNaN(securityDepositAmountInt) || !securityDepositCurrency || !s3FolderName ||
-      !otherEmail || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(otherEmail) || isNaN(totalCreditsInt) || uploadedFiles.length === 0) {
+      !otherEmail || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(otherEmail) || isNaN(totalCreditsInt) ||
+      isNaN(totalImageSizeMBInt) || uploadedFiles.length === 0) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
@@ -107,6 +116,8 @@ export async function POST(req: NextRequest) {
           otherPartyEmail: otherEmail,
           creditsCharged: totalCreditsInt,
           totalSeconds: totalVideoSecondsInt,
+          totalImagesSizeMB: totalImageSizeMBInt,
+          totalVideosSizeMB: totalVideoSizeMBInt,
           s3FolderName: s3FolderName,
           numImages: uploadedFiles.filter((file: UploadedFile) => file.type === 'IMAGE').length,
           numVideos: uploadedFiles.filter((file: UploadedFile) => file.type === 'VIDEO').length,
@@ -147,6 +158,7 @@ export async function POST(req: NextRequest) {
             recordId: record.id,
             fileName: file.fileName,
             fileExtension: file.fileExtension,
+            fileSize: parseFloat(file.fileSize),
             s3Key: file.s3Key,
             s3Location: file.s3Location,
             type: file.type,
