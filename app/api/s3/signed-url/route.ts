@@ -4,7 +4,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { v4 as uuidv4 } from 'uuid';
-import prisma from '@/libs/prisma';
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
@@ -17,7 +16,7 @@ const s3Client = new S3Client({
 export async function POST(req: NextRequest) {
   const data = await req.json();
 
-  const { imageTypes, videoTypes } = data;
+  const { images, videos } = data;
 
   try {
     const cookieStore = cookies();
@@ -34,35 +33,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (imageTypes.length === 0) {
+    if (images.length === 0) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
+    const uuid = uuidv4();
     const presignedUrls = [];
 
-    for (const type of imageTypes) {
-      const fileKey = `images/${uuidv4()}`;
+    const combined = [...images, ...videos];
+
+    for (const c of combined) {
+      const fileKey = `${uuid}/${c.name}`;
       const command = new PutObjectCommand({
         Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: fileKey,
-        ContentType: type,
+        ContentType: c.type,
       });
       const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
       presignedUrls.push({ url, key: fileKey });
     }
 
-    for (const type of videoTypes) {
-      const fileKey = `videos/${uuidv4()}`;
-      const command = new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Key: fileKey,
-        ContentType: type,
-      });
-      const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-      presignedUrls.push({ url, key: fileKey });
-    }
-
-    return NextResponse.json({ data: presignedUrls }, { status: 200 });
+    return NextResponse.json({ data: presignedUrls, s3FolderName: uuid }, { status: 200 });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

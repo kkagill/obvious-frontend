@@ -39,7 +39,6 @@ const Review: React.FC<ReviewProps> = ({
   const [uploadFailed, setUploadFailed] = useState(false);
   const uploadedFileKeysRef = useRef<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number[]>([]);
-  const [filesToUpload, setFilesToUpload] = useState<{ file: File, key: string, url: string }[]>([]);
 
   const emailLabel = role === 'Tenant' ? "Landlord Email:" : "Tenant Email:";
 
@@ -136,22 +135,29 @@ const Review: React.FC<ReviewProps> = ({
     uploadedFileKeysRef.current = [];
     setUploadProgress(new Array(selectedImages.length + selectedVideos.length).fill(0));
 
-    const imageTypes = selectedImages.map(image => image.type);
-    const videoTypes = selectedVideos.map(video => video.type);
+    const images = selectedImages.map(image => ({ type: image.type, name: image.name }));
+    const videos = selectedVideos.map(video => ({ type: video.type, name: video.name }));
 
     try {
-      const response = await apiClient.post('/s3/signed-url', {
-        imageTypes,
-        videoTypes,
+      const response: any = await apiClient.post('/s3/signed-url', {
+        images,
+        videos,
       });
 
       const presignedUrls = response.data;
+      const s3FolderName = response.s3FolderName;
+
+      if (!presignedUrls || !s3FolderName) {
+        toast.error("Sorry, could not upload. Please try again.");
+        setIsUploading(false);
+        setUploadFailed(true);
+        return;
+      }
+
       const files = [
         ...selectedImages.map((file, i) => ({ file, url: presignedUrls[i].url, key: presignedUrls[i].key })),
         ...selectedVideos.map((file, i) => ({ file, url: presignedUrls[selectedImages.length + i].url, key: presignedUrls[selectedImages.length + i].key }))
       ];
-
-      setFilesToUpload(files);
 
       for (let i = 0; i < files.length; i++) {
         await uploadFileToS3(files[i].file, files[i].url, files[i].key, i);
@@ -173,6 +179,7 @@ const Review: React.FC<ReviewProps> = ({
         otherEmail,
         totalCredits,
         totalVideoSeconds,
+        s3FolderName,
         uploadedFiles,
       });
 
@@ -216,7 +223,7 @@ const Review: React.FC<ReviewProps> = ({
       <div className="relative container mx-auto max-w-5xl py-10 px-4 sm:px-6 lg:px-8">
         {isUploading && (
           <LoadingSpinnerWithProgress
-            text="Uploading. Do not close your browser until the upload is complete."
+            text="Uploading... Do not close your browser until the upload is complete."
             progress={overallProgress}
           />
         )}

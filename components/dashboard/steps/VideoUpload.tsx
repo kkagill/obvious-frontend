@@ -225,8 +225,8 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ selectedImages, selectedVideo
               }
               nextStep();
             }}
-            disabled={totalVideoSeconds > availableCredits && !stepSkipped}
-            className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ${totalVideoSeconds > availableCredits && !stepSkipped ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={totalVideoSeconds + selectedImages.length > availableCredits && !stepSkipped}
+            className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ${totalVideoSeconds + selectedImages.length > availableCredits && !stepSkipped ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {selectedVideos.length === 0 && !stepSkipped ? 'Skip' : 'Next'}
           </button>

@@ -45,6 +45,7 @@ model Record {
   numImages       Int
   numVideos       Int?
   totalSeconds    Int?
+  s3FolderName    String
   status          RecordStatus @default(PENDING)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt

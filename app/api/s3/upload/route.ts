@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       otherEmail,
       totalCredits,
       totalVideoSeconds,
+      s3FolderName,
       uploadedFiles,
     }: {
       role: string;
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
       otherEmail: string;
       totalCredits: string;
       totalVideoSeconds: string;
+      s3FolderName: string;
       uploadedFiles: UploadedFile[];
     } = data;
 
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
     const totalCreditsInt = parseInt(totalCredits, 10);
     const totalVideoSecondsInt = parseInt(totalVideoSeconds, 10);
 
-    if (!role || !address || isNaN(securityDepositAmountInt) || !securityDepositCurrency ||
+    if (!role || !address || isNaN(securityDepositAmountInt) || !securityDepositCurrency || !s3FolderName ||
       !otherEmail || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(otherEmail) || isNaN(totalCreditsInt) || uploadedFiles.length === 0) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
@@ -105,6 +107,7 @@ export async function POST(req: NextRequest) {
           otherPartyEmail: otherEmail,
           creditsCharged: totalCreditsInt,
           totalSeconds: totalVideoSecondsInt,
+          s3FolderName: s3FolderName,
           numImages: uploadedFiles.filter((file: UploadedFile) => file.type === 'IMAGE').length,
           numVideos: uploadedFiles.filter((file: UploadedFile) => file.type === 'VIDEO').length,
         },
