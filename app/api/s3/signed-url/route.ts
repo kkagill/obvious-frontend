@@ -1,9 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { cookies } from 'next/headers';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { v4 as uuidv4 } from 'uuid';
+import { getServerSession } from 'next-auth';
+import { authOptions } from "@/libs/next-auth";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
@@ -19,18 +19,10 @@ export async function POST(req: NextRequest) {
   const { images, videos } = data;
 
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const session = await getServerSession(authOptions);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'You must be logged in.' },
-        { status: 401 }
-      );
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (images.length === 0) {

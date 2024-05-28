@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { FileUploadStatus, RecordStatus } from "@prisma/client";
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/libs/next-auth";
 import prisma from '@/libs/prisma';
 
 // Define an interface for the uploaded file metadata
@@ -73,19 +73,10 @@ export async function POST(req: NextRequest) {
       totalVideoSizeMB: string;
     } = data;
 
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    const session = await getServerSession(authOptions);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    // User who are not logged in can't make a purchase
-    if (!session) {
-      return NextResponse.json(
-        { error: "You must be logged in." },
-        { status: 401 }
-      );
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Parse the string values to integers

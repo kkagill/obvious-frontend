@@ -4,27 +4,63 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-  schemas   = ["public", "auth"]
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  provider = "prisma-client-js"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id               String  @id @default(uuid())
+  id               String    @id @default(cuid())
+  name             String?
   customerId       String?
-  email            String
-  availableCredits Int     @default(0)
+  email            String?   @unique
+  emailVerified    DateTime?
+  image            String?
+  availableCredits Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  accounts              Account[]
+  sessions              Session[]
   records               Record[]
   creditPurchaseHistory CreditPurchaseHistory[]
+}
 
-  @@schema("auth")
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model CreditPurchaseHistory {
@@ -36,9 +72,7 @@ model CreditPurchaseHistory {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  User User @relation(fields: [userId], references: [id])
-
-  @@schema("auth")
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Record {
@@ -62,9 +96,7 @@ model Record {
 
   files File[]
 
-  User User @relation(fields: [userId], references: [id])
-
-  @@schema("auth")
+  user User @relation(fields: [userId], references: [id])
 }
 
 model File {
@@ -81,9 +113,7 @@ model File {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
-  Record Record @relation(fields: [recordId], references: [id])
-
-  @@schema("auth")
+  record Record @relation(fields: [recordId], references: [id])
 }
 
 model Currency {
@@ -91,8 +121,6 @@ model Currency {
   currency  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@schema("public")
 }
 
 // ////////////////////////////////////////////////////////////
@@ -106,21 +134,15 @@ enum RecordStatus {
   UPLOADED_TO_S3
   UPLOADED_TO_IPFS
   UPLOADED_TO_EVM
-
-  @@schema("auth")
 }
 
 enum FileUploadStatus {
   PENDING
   UPLOADED_TO_S3
   UPLOADED_TO_IPFS
-
-  @@schema("auth")
 }
 
 enum FileType {
   IMAGE
   VIDEO
-
-  @@schema("auth")
 }

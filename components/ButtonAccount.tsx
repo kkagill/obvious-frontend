@@ -1,30 +1,24 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState } from "react";
 import { Popover, Transition } from "@headlessui/react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useSession, signOut } from "next-auth/react";
 import apiClient from "@/libs/api";
 
+// A button to show user some account actions
+//  1. Billing: open a Stripe Customer Portal to manage their billing (cancel subscription, update payment method, etc.).
+//     You have to manually activate the Customer Portal in your Stripe Dashboard (https://dashboard.stripe.com/test/settings/billing/portal)
+//     This is only available if the customer has a customerId (they made a purchase previously)
+//  2. Logout: sign out and go back to homepage
+// See more at https://shipfa.st/docs/components/buttonAccount
 const ButtonAccount = () => {
-  const supabase = createClientComponentClient();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    };
-
-    getUser();
-  }, [supabase]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/" });
   };
-
   const handleBilling = async () => {
     setIsLoading(true);
 
@@ -44,30 +38,32 @@ const ButtonAccount = () => {
     setIsLoading(false);
   };
 
+  // Don't show anything if not authenticated (we don't have any info about the user)
+  if (status === "unauthenticated") return null;
+
   return (
     <Popover className="relative z-10">
       {({ open }) => (
         <>
-          <Popover.Button className="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-md shadow-sm text-sm font-semibold">
-            {user?.user_metadata?.avatar_url ? (
+          <Popover.Button className="btn">
+            {session?.user?.image ? (
               <img
-                src={user?.user_metadata?.avatar_url}
-                alt={"Profile picture"}
+                src={session?.user?.image}
+                alt={session?.user?.name || "Account"}
                 className="w-6 h-6 rounded-full shrink-0"
                 referrerPolicy="no-referrer"
                 width={24}
                 height={24}
               />
             ) : (
-              <span className="w-6 h-6 bg-base-100 flex justify-center items-center rounded-full shrink-0 capitalize">
-                {user?.email?.charAt(0)}
+              <span className="w-6 h-6 bg-base-300 flex justify-center items-center rounded-full shrink-0">
+                {session?.user?.name?.charAt(0) ||
+                  session?.user?.email?.charAt(0)}
               </span>
             )}
-            <span className="hidden sm:inline truncate">
-              {user?.user_metadata?.name ||
-                user?.email?.split("@")[0] ||
-                "Account"}
-            </span>
+
+            {session?.user?.name || "Account"}
+
             {isLoading ? (
               <span className="loading loading-spinner loading-xs"></span>
             ) : (
@@ -75,7 +71,8 @@ const ButtonAccount = () => {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                className={`w-4 h-4 duration-200 opacity-50 ${open ? "transform rotate-180 " : ""}`}
+                className={`w-5 h-5 duration-200 opacity-50 ${open ? "transform rotate-180 " : ""
+                  }`}
               >
                 <path
                   fillRule="evenodd"
@@ -86,7 +83,6 @@ const ButtonAccount = () => {
             )}
           </Popover.Button>
           <Transition
-            as={Fragment}
             enter="transition duration-100 ease-out"
             enterFrom="transform scale-95 opacity-0"
             enterTo="transform scale-100 opacity-100"
@@ -109,7 +105,7 @@ const ButtonAccount = () => {
                     >
                       <path
                         fillRule="evenodd"
-                        d="M2.5 4A1.5 1.5 0 001 5.5V6h18v-.5A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a.75.75 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm4.75-.75a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z"
+                        d="M2.5 4A1.5 1.5 0 001 5.5V6h18v-.5A1.5 1.5 0 0017.5 4h-15zM19 8.5H1v6A1.5 1.5 0 002.5 16h15a1.5 1.5 0 001.5-1.5v-6zM3 13.25a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5a.75.75 0 01-.75-.75zm4.75-.75a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z"
                         clipRule="evenodd"
                       />
                     </svg>

@@ -1,9 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import { SupabaseClient } from "@supabase/supabase-js";
 import configFile from "@/config";
 import { findCheckoutSession } from "@/libs/stripe";
+import prisma from "@/libs/prisma";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-08-16",
@@ -22,12 +22,6 @@ export async function POST(req: NextRequest) {
 
   let eventType;
   let event;
-
-  // Create a private supabase client using the secret service_role API key
-  const supabase = new SupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
 
   // verify Stripe event is legit
   try {
@@ -56,15 +50,28 @@ export async function POST(req: NextRequest) {
 
         if (!plan) break;
 
-        // Update the profile where id equals the userId (in table called 'user') and update the customerId, price_id, and has_access (provisioning)
-        await supabase
-          .from("user")
-          .update({
-            customerId: customerId,
-            price_id: priceId,
-            has_access: true,
-          })
-          .eq("id", userId);
+        await prisma.$transaction(async (prisma) => {
+          const user = await prisma.user.update({
+            where: { id: userId },
+            data: {
+              customerId: customerId.toString(),
+              availableCredits: {
+                increment: plan.credits,
+              },
+            },
+          });
+
+          await prisma.creditPurchaseHistory.create({
+            data: {
+              userId: userId,
+              priceId: priceId,
+              credits: plan.credits,
+              price: plan.price,
+            },
+          });
+
+          return user;
+        });
 
         // Extra: send email with user link, product page, etc...
         // try {
@@ -94,40 +101,39 @@ export async function POST(req: NextRequest) {
         // ❌ Revoke access to the product
         const stripeObject: Stripe.Subscription = event.data
           .object as Stripe.Subscription;
+
         const subscription = await stripe.subscriptions.retrieve(
           stripeObject.id
         );
 
-        await supabase
-          .from("user")
-          .update({ has_access: false })
-          .eq("customerId", subscription.customer);
+        // We are not using subscription so skip below
+        // const user = await User.findOne({ customerId: subscription.customer });
+
+        // // Revoke access to your product
+        // user.hasAccess = false;
+        // await user.save();
+
         break;
       }
 
       case "invoice.paid": {
         // Customer just paid an invoice (for instance, a recurring payment for a subscription)
         // ✅ Grant access to the product
+        console.log("invoice.paid")
         const stripeObject: Stripe.Invoice = event.data
           .object as Stripe.Invoice;
+
         const priceId = stripeObject.lines.data[0].price.id;
         const customerId = stripeObject.customer;
 
-        // Find profile where customerId equals the customerId (in table called 'user')
-        const { data: profile } = await supabase
-          .from("user")
-          .select("*")
-          .eq("customerId", customerId)
-          .single();
+        // const user = await User.findOne({ customerId });
 
-        // Make sure the invoice is for the same plan (priceId) the user subscribed to
-        if (profile.price_id !== priceId) break;
+        // // Make sure the invoice is for the same plan (priceId) the user subscribed to
+        // if (user.priceId !== priceId) break;
 
-        // Grant the profile access to your product. It's a boolean in the database, but could be a number of credits, etc...
-        await supabase
-          .from("user")
-          .update({ has_access: true })
-          .eq("customerId", customerId);
+        // // Grant user access to your product. It's a boolean in the database, but could be a number of credits, etc...
+        // user.hasAccess = true;
+        // await user.save();
 
         break;
       }
