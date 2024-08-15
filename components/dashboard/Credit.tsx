@@ -5,7 +5,7 @@ import ButtonCheckout from '@/components/ButtonCheckout';
 const Credit: React.FC = () => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-lg">
-      <ul className="list-none mb-8 space-y-4">
+      {/* <ul className="list-none mb-8 space-y-4">
         <li className="flex items-center text-green-600">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -18,8 +18,8 @@ const Credit: React.FC = () => {
           </svg>
           <span className="font-medium text-sm md:text-base">Blockchain tamper-proof against AI manipulation</span>
         </li>
-      </ul>
-      <div className="p-4 bg-gray-100 rounded-md mb-6">
+      </ul> */}
+      {/* <div className="p-4 bg-gray-100 rounded-md mb-6">
         <div className="flex items-center space-x-2">
           <span className="text-sm md:text-base font-semibold text-gray-800">1 credit =</span>
           <span className="text-sm md:text-base font-semibold text-blue-500">1 image file</span>
@@ -28,7 +28,7 @@ const Credit: React.FC = () => {
           <span className="text-sm md:text-base font-semibold text-gray-800">1 credit =</span>
           <span className="text-sm md:text-base font-semibold text-blue-500">1 second of video</span>
         </div>
-      </div>
+      </div> */}
       <div className="overflow-x-auto">
         <table className="w-full text-center table-auto border-collapse mb-8 shadow-sm">
           <thead>

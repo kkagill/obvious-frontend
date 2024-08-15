@@ -4,7 +4,7 @@ import { authOptions } from "@/libs/next-auth";
 import { serializeBigInt } from "@/libs/serializeBigInt";
 import prisma from '@/libs/prisma';
 
-export async function GET() {
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -12,15 +12,21 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userRecords = await prisma.record.findMany({
+    const { videoId } = await request.json();
+
+    if (!videoId) {
+      return NextResponse.json({ error: "Video ID is required" }, { status: 400 });
+    }
+
+    const clips = await prisma.clip.findMany({
       where: {
-        userId: session?.user?.id,
+        videoId: videoId,
       }
     });
 
-    const serializedRecords = serializeBigInt(userRecords);
+    const serialized = serializeBigInt(clips);
 
-    return NextResponse.json(serializedRecords, { status: 200 });
+    return NextResponse.json(serialized, { status: 200 });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: e.message }, { status: 500 });

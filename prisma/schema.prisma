@@ -1,5 +1,3 @@
-// https://supabase.com/partners/integrations/prisma
-
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
@@ -51,7 +49,7 @@ model User {
 
   accounts              Account[]
   sessions              Session[]
-  records               Record[]
+  videos                Video[]
   creditPurchaseHistory CreditPurchaseHistory[]
 }
 
@@ -75,52 +73,41 @@ model CreditPurchaseHistory {
   user User @relation(fields: [userId], references: [id])
 }
 
-model Record {
-  id                BigInt       @id @default(autoincrement())
+model Video {
+  id                BigInt      @id @default(autoincrement())
   userId            String
-  role              String
-  rentalAddress     String
-  securityDeposit   Int
-  currency          String
-  otherPartyEmail   String
+  fileName          String
+  fileExtension     String
   creditsCharged    Int
-  numImages         Int
-  numVideos         Int?
-  totalSeconds      Int?
-  totalImagesSizeMB Decimal      @db.Decimal(7, 2)
-  totalVideosSizeMB Decimal?     @db.Decimal(7, 2)
+  numOfClips        Int
+  requestedDuration Int
+  totalSeconds      Int
+  sizeInMB          Decimal     @db.Decimal(7, 2)
   s3FolderName      String
-  status            RecordStatus @default(PENDING)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  s3Key             String
+  s3Location        String
+  status            VideoStatus @default(CREATED)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
-  files File[]
+  clips Clip[]
 
   user User @relation(fields: [userId], references: [id])
 }
 
-model File {
-  id            BigInt           @id @default(autoincrement())
-  recordId      BigInt
-  fileName      String
-  fileExtension String
-  fileSize      Decimal          @db.Decimal(7, 2)
+model Clip {
+  id            BigInt   @id @default(autoincrement())
+  videoId       BigInt
+  fileName      String   @unique
+  fileExtension String   @default(".mp4")
+  duration      Int
+  sizeInMB      Decimal  @db.Decimal(7, 2)
+  s3FolderName  String
   s3Key         String
-  s3Location    String
-  ipfsHash      String?
-  type          FileType         @default(IMAGE)
-  uploadStatus  FileUploadStatus @default(PENDING)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  record Record @relation(fields: [recordId], references: [id])
-}
-
-model Currency {
-  id        BigInt   @id @default(autoincrement())
-  currency  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  video Video @relation(fields: [videoId], references: [id])
 }
 
 // ////////////////////////////////////////////////////////////
@@ -129,20 +116,7 @@ model Currency {
 // //                                                        //
 // ////////////////////////////////////////////////////////////
 
-enum RecordStatus {
-  PENDING
-  UPLOADED_TO_S3
-  UPLOADED_TO_IPFS
-  UPLOADED_TO_EVM
-}
-
-enum FileUploadStatus {
-  PENDING
-  UPLOADED_TO_S3
-  UPLOADED_TO_IPFS
-}
-
-enum FileType {
-  IMAGE
-  VIDEO
+enum VideoStatus {
+  CREATED
+  CLIPS_UPLOADED
 }

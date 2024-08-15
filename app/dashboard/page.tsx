@@ -4,12 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import Header from "@/components/dashboard/Header";
 import Modal from "@/components/Modal";
 import Create from "@/components/dashboard/Create";
-import Read from "@/components/dashboard/Read";
-import Record from "@/components/dashboard/Record";
 import { AiOutlineUpload } from "react-icons/ai";
 import apiClient from "@/libs/api";
 import { FaSpinner } from "react-icons/fa";
 import toast from "react-hot-toast";
+import Clip from "@/components/dashboard/Clip";
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -17,8 +16,8 @@ const Dashboard = () => {
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
   const [showUpload, setShowUpload] = useState<boolean>(false);
   const [hasUploaded, setHasUploaded] = useState<boolean>(false);
-  const [recordLoading, setRecordLoading] = useState<boolean>(false);
-  const [userRecords, setUserRecords] = useState<any[]>([]);
+  const [clipLoading, setClipLoading] = useState<boolean>(false);
+  const [userClips, setUserClips] = useState<any[]>([]);
 
   const handleUploadClick = () => {
     setShowUpload(true);
@@ -28,32 +27,26 @@ const Dashboard = () => {
     setShowUpload(false);
   };
 
-  const handleReadClick = () => {
-    setModalTitle("");
-    setModalContent(<Read />);
-    setIsModalOpen(true);
-  };
-
-  const fetchRecords = useCallback(async () => {
+  const fetchClips = useCallback(async () => {
     try {
-      setRecordLoading(true);
-      const response: any[] = await apiClient.get("/record");
-      setUserRecords(response);
-      setRecordLoading(false);
+      setClipLoading(true);
+      const response: any[] = await apiClient.get("/clip");
+      setUserClips(response);
+      setClipLoading(false);
     } catch (error) {
-      console.error('Error fetching available record:', error);
-      setRecordLoading(false);
+      console.error('Error fetching available clips:', error);
+      setClipLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchRecords();
+    fetchClips();
   }, []);
 
   useEffect(() => {
     if (hasUploaded) {
-      fetchRecords();
-      toast.success("Upload successful! We'll notify you once your files are fully uploaded to the blockchain.", { duration: 7000 });
+      fetchClips();
+      toast.success("Upload successful! We'll notify you once the clips are generated.", { duration: 5000 });
       setHasUploaded(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -76,29 +69,23 @@ const Dashboard = () => {
             <div className="flex justify-center min-h-screen p-8 pb-24 pt-15">
               <div className="w-full max-w-4xl">
                 <section className="flex justify-between items-center mb-8">
-                  <h1 className="text-base md:text-2xl font-bold">Records</h1>
+                  <h1 className="text-base md:text-2xl font-bold">Clips</h1>
                   <div className="flex space-x-2">
-                    <button
-                      className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 flex items-center text-xs py-1 sm:text-sm sm:py-2"
-                      onClick={handleReadClick}
-                    >
-                      Read
-                    </button>
                     <button
                       className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 flex items-center text-xs py-1 sm:text-sm sm:py-2"
                       onClick={handleUploadClick}
                     >
                       <AiOutlineUpload className="h-4 w-4 mr-2 sm:h-5 sm:w-5" />
-                      Create
+                      Upload
                     </button>
                   </div>
                 </section>
-                {recordLoading ? (
+                {clipLoading ? (
                   <div className="flex justify-center items-center min-h-[200px]">
                     <FaSpinner className="animate-spin text-gray-700 text-2xl" />
                   </div>
                 ) : (
-                  <Record records={userRecords} />
+                  <Clip clips={userClips} />
                 )}
               </div>
             </div>

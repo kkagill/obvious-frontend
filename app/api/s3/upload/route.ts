@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
-import { FileUploadStatus, RecordStatus } from "@prisma/client";
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
 import prisma from '@/libs/prisma';
@@ -12,11 +12,20 @@ interface UploadedFile {
   fileSize: string;
   s3Key: string;
   s3Location: string;
-  type: 'IMAGE' | 'VIDEO';
+  type: 'VIDEO' | 'CLIP';
 }
 
 // Configure the AWS S3 client
 const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+// Configure the AWS SQS client
+const sqsClient = new SQSClient({
   region: process.env.AWS_REGION,
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -41,6 +50,20 @@ const deleteUploadedFiles = async (keys: string[]) => {
   }
 };
 
+const sendSQSMessage = async (messageBody: object) => {
+  const params = {
+    QueueUrl: process.env.AWS_SQS_QUEUE_URL,
+    MessageBody: JSON.stringify(messageBody),
+  };
+
+  try {
+    const data = await sqsClient.send(new SendMessageCommand(params));
+    console.log('SQS message sent:', data.MessageId);
+  } catch (error) {
+    console.error('Error sending SQS message:', error);
+  }
+};
+
 export async function POST(req: NextRequest) {
   let uploadedFileKeys: string[] = [];
 
@@ -48,28 +71,18 @@ export async function POST(req: NextRequest) {
     const data = await req.json();
 
     const {
-      role,
-      address,
-      securityDepositAmount,
-      securityDepositCurrency,
-      otherEmail,
-      totalCredits,
+      clipAmount,
+      duration,
       totalVideoSeconds,
       s3FolderName,
       uploadedFiles,
-      totalImageSizeMB,
       totalVideoSizeMB
     }: {
-      role: string;
-      address: string;
-      securityDepositAmount: string;
-      securityDepositCurrency: string;
-      otherEmail: string;
-      totalCredits: string;
+      clipAmount: string;
+      duration: string;
       totalVideoSeconds: string;
       s3FolderName: string;
       uploadedFiles: UploadedFile[];
-      totalImageSizeMB: string;
       totalVideoSizeMB: string;
     } = data;
 
@@ -80,83 +93,43 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse the string values to integers
-    const securityDepositAmountInt = parseInt(securityDepositAmount, 10);
-    const totalCreditsInt = parseInt(totalCredits, 10);
+    const clipAmountInt = parseInt(clipAmount, 10);
+    const durationInt = parseInt(duration, 10);
     const totalVideoSecondsInt = parseInt(totalVideoSeconds, 10);
-    const totalImageSizeMBInt = parseFloat(totalImageSizeMB);
     const totalVideoSizeMBInt = parseFloat(totalVideoSizeMB);
-    console.log({ totalImageSizeMBInt })
-    console.log({ totalVideoSizeMBInt })
-    if (!role || !address || isNaN(securityDepositAmountInt) || !securityDepositCurrency || !s3FolderName ||
-      !otherEmail || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(otherEmail) || isNaN(totalCreditsInt) ||
-      isNaN(totalImageSizeMBInt) || uploadedFiles.length === 0) {
+
+    if (isNaN(clipAmountInt) || !durationInt || !s3FolderName || isNaN(totalVideoSecondsInt) || uploadedFiles.length === 0) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
     uploadedFileKeys = uploadedFiles.map(file => file.s3Key);
 
     await prisma.$transaction(async (prisma) => {
-      // Create a new record first
-      const record = await prisma.record.create({
+      const video = await prisma.video.create({
         data: {
           userId: session.user.id,
-          role: role,
-          rentalAddress: address,
-          securityDeposit: securityDepositAmountInt,
-          currency: securityDepositCurrency,
-          otherPartyEmail: otherEmail,
-          creditsCharged: totalCreditsInt,
+          fileName: uploadedFiles[0].fileName,
+          fileExtension: uploadedFiles[0].fileExtension,
+          creditsCharged: 0,
+          numOfClips: clipAmountInt,
+          requestedDuration: durationInt,
           totalSeconds: totalVideoSecondsInt,
-          totalImagesSizeMB: totalImageSizeMBInt,
-          totalVideosSizeMB: totalVideoSizeMBInt,
+          sizeInMB: totalVideoSizeMBInt,
           s3FolderName: s3FolderName,
-          numImages: uploadedFiles.filter((file: UploadedFile) => file.type === 'IMAGE').length,
-          numVideos: uploadedFiles.filter((file: UploadedFile) => file.type === 'VIDEO').length,
+          s3Key: uploadedFiles[0].s3Key,
+          s3Location: uploadedFiles[0].s3Location,
         },
       });
 
-      // Decrease the user's available credits
-      const user = await prisma.user.update({
-        where: { id: session.user.id },
-        data: {
-          availableCredits: {
-            decrement: totalCreditsInt,
-          },
-        },
+      await sendSQSMessage({
+        videoId: video.id,
+        userId: video.userId,
+        s3Key: video.s3Key,
+        type: 'video',
+        numOfClips: clipAmountInt,
+        duration: durationInt,
       });
 
-      if (user.availableCredits < 0) {
-        throw new Error('Sorry, you have insufficient credits.');
-      }
-
-      // Update the record status to indicate all files are uploaded
-      await prisma.record.update({
-        where: {
-          id: record.id,
-          userId: session.user.id
-        },
-        data: {
-          status: RecordStatus.UPLOADED_TO_S3,
-        },
-      });
-
-      //throw new Error('Test');
-
-      // Save each uploaded file information in the database
-      for (const file of uploadedFiles) {
-        await prisma.file.create({
-          data: {
-            recordId: record.id,
-            fileName: file.fileName,
-            fileExtension: file.fileExtension,
-            fileSize: parseFloat(file.fileSize),
-            s3Key: file.s3Key,
-            s3Location: file.s3Location,
-            type: file.type,
-            uploadStatus: FileUploadStatus.UPLOADED_TO_S3,
-          },
-        });
-      }
       return uploadedFiles;
     });
 

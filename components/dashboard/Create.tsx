@@ -2,31 +2,24 @@
 
 import { useState } from "react";
 import { AiOutlineArrowLeft } from 'react-icons/ai';
-import RoleSelection from "@/components/dashboard/steps/RoleSelection";
-import ImageUpload from "@/components/dashboard/steps/ImageUpload";
-import EmailConfirmation from "@/components/dashboard/steps/EmailConfirmation";
-import Address from "@/components/dashboard/steps/Address";
-import SecurityDeposit from "@/components/dashboard/steps/SecurityDeposit";
 import ProgressBar from "@/components/dashboard/steps/ProgressBar";
 import Modal from "@/components/Modal";
 import VideoUpload from "./steps/VideoUpload";
 import Review from "./steps/Review";
+import ClipAmount from "./steps/ClipAmount";
+import Duration from "./steps/Duration";
 
 interface CreateProps {
   handleGoBack: () => void;
   setHasUploaded: (flag: boolean) => void;
 }
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 4;
 
 const Create: React.FC<CreateProps> = ({ handleGoBack, setHasUploaded }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [role, setRole] = useState<string>('');
-  const [address, setAddress] = useState<string>('');
-  const [securityDepositAmount, setSecurityDepositAmount] = useState<string>('');
-  const [securityDepositCurrency, setSecurityDepositCurrency] = useState('USD');
-  const [otherEmail, setOtherEmail] = useState<string>('');
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [clipAmount, setClipAmount] = useState<string>('');
+  const [duration, setDuration] = useState<string>('');
   const [selectedVideos, setSelectedVideos] = useState<File[]>([]);
 
   // Modal state
@@ -50,68 +43,36 @@ const Create: React.FC<CreateProps> = ({ handleGoBack, setHasUploaded }) => {
             </button>
             <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
           </section>
-          <section className={currentStep === 7 ? 'pt-5' : currentStep !== 2 && currentStep !== 3 ? 'pt-20' : 'pt-10'}>
+          <section className={currentStep === 4 ? 'pt-5' : currentStep !== 1 ? 'pt-20' : 'pt-10'}>
             {currentStep === 1 && (
-              <RoleSelection
-                role={role}
-                setRole={setRole}
-                nextStep={nextStep}
-                previousStep={previousStep}
-              />
-            )}
-            {currentStep === 2 && (
-              <ImageUpload
-                selectedImages={selectedImages}
-                setImages={setSelectedImages}
-                nextStep={nextStep}
-                previousStep={previousStep}
-              />
-            )}
-            {currentStep === 3 && (
               <VideoUpload
-                selectedImages={selectedImages}
                 selectedVideos={selectedVideos}
                 setVideos={setSelectedVideos}
                 nextStep={nextStep}
                 previousStep={previousStep}
               />
             )}
+            {currentStep === 2 && (
+              <ClipAmount
+                clipAmount={clipAmount}
+                setClipAmount={setClipAmount}
+                nextStep={nextStep}
+                previousStep={previousStep}
+              />
+            )}
+            {currentStep === 3 && (
+              <Duration
+                duration={duration}
+                setDuration={setDuration}
+                nextStep={nextStep}
+                previousStep={previousStep}
+              />
+            )}
             {currentStep === 4 && (
-              <Address
-                address={address}
-                setAddress={setAddress}
-                nextStep={nextStep}
-                previousStep={previousStep}
-              />
-            )}
-            {currentStep === 5 && (
-              <SecurityDeposit
-                securityDepositAmount={securityDepositAmount}
-                securityDepositCurrency={securityDepositCurrency}
-                setSecurityDepositAmount={setSecurityDepositAmount}
-                setSecurityDepositCurrency={setSecurityDepositCurrency}
-                nextStep={nextStep}
-                previousStep={previousStep}
-              />
-            )}
-            {currentStep === 6 && (
-              <EmailConfirmation
-                otherEmail={otherEmail}
-                role={role}
-                setOtherEmail={setOtherEmail}
-                nextStep={nextStep}
-                previousStep={previousStep}
-              />
-            )}
-            {currentStep === 7 && (
               <Review
-                address={address}
-                securityDepositAmount={securityDepositAmount}
-                securityDepositCurrency={securityDepositCurrency}
-                otherEmail={otherEmail}
-                selectedImages={selectedImages}
+                clipAmount={clipAmount}
+                duration={duration}
                 selectedVideos={selectedVideos}
-                role={role}
                 previousStep={previousStep}
                 handleGoBack={handleGoBack}
                 setHasUploaded={setHasUploaded}

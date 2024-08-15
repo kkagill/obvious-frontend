@@ -5,26 +5,18 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import LoadingSpinnerWithProgress from '@/components/LoadingSpinnerWithProgress';
 
 interface ReviewProps {
-  address: string;
-  securityDepositAmount: string;
-  securityDepositCurrency: string;
-  otherEmail: string;
-  selectedImages: File[];
+  clipAmount: string;
+  duration: string;
   selectedVideos: File[];
-  role: string;
   previousStep: () => void;
   handleGoBack: () => void;
   setHasUploaded: (flag: boolean) => void;
 }
 
 const Review: React.FC<ReviewProps> = ({
-  address,
-  securityDepositAmount,
-  securityDepositCurrency,
-  otherEmail,
-  selectedImages,
+  clipAmount,
+  duration,
   selectedVideos,
-  role,
   previousStep,
   handleGoBack,
   setHasUploaded,
@@ -39,8 +31,6 @@ const Review: React.FC<ReviewProps> = ({
   const [uploadFailed, setUploadFailed] = useState(false);
   const uploadedFileKeysRef = useRef<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number[]>([]);
-
-  const emailLabel = role === 'Tenant' ? "Landlord Email:" : "Tenant Email:";
 
   const truncateFileName = (name: string, maxLength: number) => {
     if (name.length <= maxLength) return name;
@@ -66,7 +56,7 @@ const Review: React.FC<ReviewProps> = ({
   useEffect(() => {
     const calculateCredits = async () => {
       setLoading(true);
-      let totalCredits = selectedImages.length;
+      let totalCredits = selectedVideos.length;
       let totalSeconds = 0;
 
       for (const file of selectedVideos) {
@@ -81,7 +71,7 @@ const Review: React.FC<ReviewProps> = ({
     };
 
     calculateCredits();
-  }, [selectedImages, selectedVideos]);
+  }, [selectedVideos]);
 
   const calculateTotalSize = (files: File[]) => {
     return files.reduce((total, file) => total + file.size, 0);
@@ -134,21 +124,19 @@ const Review: React.FC<ReviewProps> = ({
   };
 
   const onUpload = async () => {
-    if (selectedImages.length === 0) {
+    if (selectedVideos.length === 0) {
       return;
     }
 
     setIsUploading(true);
     setUploadFailed(false);
     uploadedFileKeysRef.current = [];
-    setUploadProgress(new Array(selectedImages.length + selectedVideos.length).fill(0));
+    setUploadProgress(new Array(selectedVideos.length).fill(0));
 
-    const images = selectedImages.map(image => ({ type: image.type, name: image.name }));
     const videos = selectedVideos.map(video => ({ type: video.type, name: video.name }));
 
     try {
       const response: any = await apiClient.post('/s3/signed-url', {
-        images,
         videos,
       });
 
@@ -163,10 +151,9 @@ const Review: React.FC<ReviewProps> = ({
       }
 
       const files = [
-        ...selectedImages.map((file, i) => ({ file, url: presignedUrls[i].url, key: presignedUrls[i].key })),
-        ...selectedVideos.map((file, i) => ({ file, url: presignedUrls[selectedImages.length + i].url, key: presignedUrls[selectedImages.length + i].key }))
+        ...selectedVideos.map((file, i) => ({ file, url: presignedUrls[i].url, key: presignedUrls[i].key })),
       ];
-
+      console.log({ files })
       for (let i = 0; i < files.length; i++) {
         await uploadFileToS3(files[i].file, files[i].url, files[i].key, i);
       }
@@ -177,29 +164,19 @@ const Review: React.FC<ReviewProps> = ({
         fileSize: bytesToMB(fileData.file.size).toFixed(2),
         s3Key: fileData.key,
         s3Location: fileData.url,
-        type: index < selectedImages.length ? 'IMAGE' : 'VIDEO',
+        type: 'VIDEO'
       }));
 
-      const totalImageSizeBytes = calculateTotalSize(selectedImages);
       const totalVideoSizeBytes = calculateTotalSize(selectedVideos);
-      console.log({ totalImageSizeBytes })
-      console.log({ totalVideoSizeBytes })
       // Convert to MB and fix to 2 decimal places
-      const totalImageSizeMB = bytesToMB(totalImageSizeBytes).toFixed(2);
       const totalVideoSizeMB = bytesToMB(totalVideoSizeBytes).toFixed(2);
-      console.log({ totalImageSizeMB })
-      console.log({ totalVideoSizeMB })
+
       await apiClient.post('/s3/upload', {
-        role,
-        address,
-        securityDepositAmount,
-        securityDepositCurrency,
-        otherEmail,
-        totalCredits,
+        clipAmount,
+        duration,
         totalVideoSeconds,
         s3FolderName,
         uploadedFiles,
-        totalImageSizeMB,
         totalVideoSizeMB
       });
 
@@ -240,7 +217,7 @@ const Review: React.FC<ReviewProps> = ({
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="relative container mx-auto max-w-5xl py-10 px-4 sm:px-6 lg:px-8">
+      <div className="relative container mx-auto max-w-4xl py-10 px-4 sm:px-6 lg:px-8">
         {isUploading && (
           <LoadingSpinnerWithProgress
             text="Uploading... Do not close your browser until the upload is complete."
@@ -249,74 +226,45 @@ const Review: React.FC<ReviewProps> = ({
         )}
         <div className={`bg-transparent sm:bg-white sm:shadow-lg sm:rounded-lg sm:p-8 ${isUploading ? 'blur-md' : ''}`}>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 text-center text-gray-800">
-            Review Your Information
+            Generate Highlights
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6 pt-10">
-            <div>
-              <h3 className="text-md sm:text-lg font-semibold text-gray-700">My Role</h3>
-              <p className="text-sm sm:text-base text-gray-600">{role}</p>
-            </div>
-            <div>
-              <h3 className="text-md sm:text-lg font-semibold text-gray-700">Rental Address</h3>
-              <p className="text-sm sm:text-base text-gray-600">{address}</p>
-            </div>
-            <div>
-              <h3 className="text-md sm:text-lg font-semibold text-gray-700">Security Deposit</h3>
-              <p className="text-sm sm:text-base text-gray-600">{securityDepositAmount} {securityDepositCurrency}</p>
-            </div>
-            <div>
-              <h3 className="text-md sm:text-lg font-semibold text-gray-700">{emailLabel}</h3>
-              <p className="text-sm sm:text-base text-gray-600">{otherEmail}</p>
-            </div>
-            <div>
-              <h3 className="text-md sm:text-lg font-semibold text-gray-700">Total Video Seconds</h3>
-              <p className="text-sm sm:text-base text-gray-600">{totalVideoSeconds}</p>
-            </div>
-            <div>
-              <h3 className="text-md sm:text-lg font-semibold text-gray-700">Total Credits Charged</h3>
-              <p className="text-sm sm:text-base text-gray-600">{totalCredits}</p>
+          <div className="flex justify-center items-center mb-6 pt-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-lg">
+              <div>
+                <h3 className="text-md sm:text-lg font-semibold text-gray-700 text-center">Number of Clips</h3>
+                <p className="text-sm sm:text-base text-gray-600 text-center">{clipAmount}</p>
+              </div>
+              <div>
+                <h3 className="text-md sm:text-lg font-semibold text-gray-700 text-center">Length of Each Clip</h3>
+                <p className="text-sm sm:text-base text-gray-600 text-center">{duration} seconds</p>
+              </div>
             </div>
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-md sm:text-lg font-semibold text-gray-700 mb-4">{selectedImages.length} Image File(s)</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
-              {selectedImages.map((image, index) => (
-                <div key={index} className="relative border rounded-lg overflow-hidden shadow-sm">
-                  <img src={URL.createObjectURL(image)} alt="" className="h-32 w-full object-cover sm:h-40" />
-                  <p className="text-center text-xs sm:text-sm mt-2 p-2 text-gray-600 truncate">{truncateFileName(image.name, 15)}</p>
+          <div className="mb-6 pt-10 flex justify-center">
+            {selectedVideos.length > 0 && (
+              <div className="w-full max-w-lg">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-4 text-center">
+                  {truncateFileName(selectedVideos[0].name, 30)}
+                </h3>
+                <div className="relative border rounded-lg overflow-hidden shadow-sm">
+                  <video
+                    src={URL.createObjectURL(selectedVideos[0])}
+                    className="h-48 sm:h-64 w-full object-cover"
+                    controls
+                  />
                   {isUploading && (
                     <div className="absolute bottom-0 left-0 right-0 bg-gray-200">
                       <div
                         className="bg-blue-500 h-1"
-                        style={{ width: `${uploadProgress[index] || 0}%` }}
+                        style={{ width: `${uploadProgress[0] || 0}%` }}
                       />
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-md sm:text-lg font-semibold text-gray-700 mb-4">{selectedVideos.length} Video File(s)</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
-              {selectedVideos.map((video, index) => (
-                <div key={index} className="relative border rounded-lg overflow-hidden shadow-sm">
-                  <video src={URL.createObjectURL(video)} className="h-32 w-full object-cover sm:h-40" controls />
-                  <p className="text-center text-xs sm:text-sm mt-2 p-2 text-gray-600 truncate">{truncateFileName(video.name, 15)}</p>
-                  {isUploading && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gray-200">
-                      <div
-                        className="bg-blue-500 h-1"
-                        style={{ width: `${uploadProgress[selectedImages.length + index] || 0}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-between items-center mt-4 pt-5">
@@ -329,7 +277,7 @@ const Review: React.FC<ReviewProps> = ({
               <button
                 onClick={() => { onUpload(); }}
                 className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-2 sm:px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300">
-                Confirm Payment
+                Proceed
               </button>
             ) : (
               <button

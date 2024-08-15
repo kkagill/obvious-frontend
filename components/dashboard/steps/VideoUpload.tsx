@@ -5,29 +5,26 @@ import apiClient from '@/libs/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface VideoUploadProps {
-  selectedImages: File[];
   selectedVideos: File[];
   setVideos: React.Dispatch<React.SetStateAction<File[]>>;
   nextStep: () => void;
   previousStep: () => void;
 }
 
-const VideoUpload: React.FC<VideoUploadProps> = ({ selectedImages, selectedVideos, setVideos, nextStep, previousStep }) => {
+const VideoUpload: React.FC<VideoUploadProps> = ({ selectedVideos, setVideos, nextStep, previousStep }) => {
   const [rejectionMessages, setRejectionMessages] = useState<string[]>([]);
   const [availableCredits, setAvailableCredits] = useState<number>(0);
-  const [totalVideoSeconds, setTotalVideoSecondsState] = useState<number>(0);
+  const [totalVideoSeconds, setTotalVideoSeconds] = useState<number>(0);
   const [totalCreditsNeededMessage, setTotalCreditsNeededMessage] = useState<string>('');
-  const [stepSkipped, setStepSkipped] = useState(false);
   const [loadingCredits, setLoadingCredits] = useState<boolean>(true);
-  const FILE_SIZE_LIMIT = 100 * 1024 * 1024; // 100 MB limit
-  const IMAGE_CREDIT_COST = 1; // 1 credit per image
-  const MAX_FILE_COUNT = 5; // Maximum number of files allowed
+  const FILE_SIZE_LIMIT = 500 * 1024 * 1024; // 500 MB limit
+  const MAX_FILE_COUNT = 1; // Maximum number of files allowed
   const effectRan = useRef(false);
 
   const fetchAvailableCredits = useCallback(async () => {
     try {
-      const { user }: { user: any } = await apiClient.get("/user");
-      setAvailableCredits(user.availableCredits);
+      //const { user }: { user: any } = await apiClient.get("/user");
+      //setAvailableCredits(user.availableCredits);
     } catch (error) {
       console.error('Error fetching available credits:', error);
     } finally {
@@ -48,32 +45,19 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ selectedImages, selectedVideo
 
   useEffect(() => {
     const calculateCredits = async () => {
-      if (availableCredits) {
-        let totalCredits = selectedImages.length * IMAGE_CREDIT_COST;
-        let totalSeconds = 0;
+      let totalSeconds = 0;
 
-        for (const file of selectedVideos) {
-          const duration = await getVideoDuration(file);
-          totalSeconds += duration;
-          totalCredits += duration;
-        }
-
-        setTotalVideoSecondsState(Math.floor(totalSeconds));
-        totalCredits = Math.floor(totalCredits);
-
-        if (totalCredits > availableCredits) {
-          const creditsNeeded = totalCredits - availableCredits;
-          const msg = `${creditsNeeded} more credit(s) needed to continue. Please purchase more credits.`;
-          setTotalCreditsNeededMessage(msg);
-          toast.error(msg, { duration: 4000 });
-        } else {
-          setTotalCreditsNeededMessage('');
-        }
+      for (const file of selectedVideos) {
+        const duration = await getVideoDuration(file);
+        totalSeconds += duration;
+        //totalCredits += duration;
       }
+
+      setTotalVideoSeconds(Math.floor(totalSeconds));
     };
 
     calculateCredits();
-  }, [availableCredits]);
+  }, []);
 
   const getVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve) => {
@@ -101,7 +85,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ selectedImages, selectedVideo
       setTotalCreditsNeededMessage('');
 
       if (selectedVideos.length + acceptedFiles.length > MAX_FILE_COUNT) {
-        const msg = `You can upload up to ${MAX_FILE_COUNT} video files only.`;
+        const msg = `You can upload up to ${MAX_FILE_COUNT} video file(s) only.`;
         setTotalCreditsNeededMessage(msg);
         toast.error(msg, { duration: 4000 });
         return;
@@ -121,25 +105,14 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ selectedImages, selectedVideo
       const updatedSelectedVideos = [...selectedVideos, ...newFiles];
       setVideos(updatedSelectedVideos);
 
-      let totalCreditsNeeded = selectedImages.length * IMAGE_CREDIT_COST;
       let totalSeconds = 0;
 
       for (const file of updatedSelectedVideos) {
         const duration = newDurations[file.name] || await getVideoDuration(file);
         totalSeconds += duration;
-        totalCreditsNeeded += duration;
       }
 
-      setTotalVideoSecondsState(Math.floor(totalSeconds));
-      totalCreditsNeeded = Math.floor(totalCreditsNeeded);
-      setStepSkipped(false);
-
-      if (totalCreditsNeeded > availableCredits) {
-        const creditsNeeded = totalCreditsNeeded - availableCredits;
-        const msg = `${creditsNeeded} more credit(s) needed to continue. Please purchase more credits.`;
-        setTotalCreditsNeededMessage(msg);
-        toast.error(msg, { duration: 4000 });
-      }
+      setTotalVideoSeconds(Math.floor(totalSeconds));
 
       const messages = fileRejections.flatMap(({ file, errors }) =>
         errors.map(e => `${file.name}: ${e.message}`)
@@ -181,14 +154,14 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ selectedImages, selectedVideo
       })}>
         <input {...getInputProps()} />
         {isDragActive ? (
-          <p>Drop file(s) here ...</p>
+          <p>Drop file here ...</p>
         ) : (
           <>
-            <p className="text-center text-sm md:text-base lg:text-lg p-6">
-              (*optional) Drag and drop <span className="text-red-500 font-bold">video</span> files here, or click to select files
+            <p className="text-center text-sm md:text-base lg:text-lg p-10">
+              Drag and drop a <span className="text-red-500 font-bold">video</span> file here, or click to select a file
             </p>
-            <p className="text-center text-xs md:text-sm lg:text-base">Max 5 files, each under 100 MB</p>
-            <p className="text-center text-xs md:text-sm lg:text-base">Each second of video costs 1 credit</p>
+            <p className="text-center text-xs md:text-sm lg:text-base">Max. 500 MB</p>
+            {/* <p className="text-center text-xs md:text-sm lg:text-base">Maximum {MAX_FILE_COUNT} files</p> */}
           </>
         )}
       </div>
@@ -203,51 +176,49 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ selectedImages, selectedVideo
         </div>
       )}
 
-      <div className="flex justify-between items-center mt-4 mb-4 w-full">
-        <button onClick={previousStep} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300">
-          Back
-        </button>
+      <div className="flex justify-end items-center mt-4 mb-4 w-full">
         <div className="flex gap-2">
           {selectedVideos.length > 0 && (
             <button onClick={() => {
               setVideos([]);
               setRejectionMessages([]);
               setTotalCreditsNeededMessage('');
-              setTotalVideoSecondsState(0); // Reset total seconds
+              setTotalVideoSeconds(0); // Reset total seconds
             }} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300">
               Reset
             </button>
           )}
           <button
-            onClick={() => {
-              if (selectedVideos.length === 0) {
-                setStepSkipped(true);
-              }
-              nextStep();
-            }}
-            disabled={totalVideoSeconds + selectedImages.length > availableCredits && !stepSkipped}
-            className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ${totalVideoSeconds + selectedImages.length > availableCredits && !stepSkipped ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={nextStep}
+            disabled={selectedVideos.length === 0}
+            className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ${selectedVideos.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {selectedVideos.length === 0 && !stepSkipped ? 'Skip' : 'Next'}
+            Next
           </button>
         </div>
       </div>
 
       {selectedVideos.length > 0 &&
-        <p className="text-left text-gray-800 mt-5 mb-5">
-          <strong>{selectedVideos.length}</strong> {selectedVideos.length === 1 ? 'video' : 'videos'} ({Math.floor(totalVideoSeconds)} seconds), <strong>{Math.floor(totalVideoSeconds)}</strong> {Math.floor(totalVideoSeconds) === 1 ? 'credit' : 'credits'} required.
+        <p className="w-full flex justify-center">
+          {Math.floor(totalVideoSeconds)} seconds
         </p>
       }
 
-      <div className="images grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] w-full gap-[1rem]">
-        {selectedVideos.length > 0 &&
-          selectedVideos.map((video, index) => (
-            <div key={index} className="relative bg-white shadow-md rounded-md p-2">
-              <video src={URL.createObjectURL(video)} className="h-[15rem] w-full object-cover rounded-md" controls />
-              <p className="text-center text-sm mt-2">{truncateFileName(video.name, 15)}</p>
-            </div>
-          ))}
+      <div className="w-full flex justify-center">
+        {selectedVideos.length > 0 && (
+          <div className="relative bg-white shadow-md rounded-md p-2 max-w-[90%]">
+            <video
+              src={URL.createObjectURL(selectedVideos[0])}
+              className="h-[20rem] w-full object-cover rounded-md"
+              controls
+            />
+            <p className="text-center text-sm mt-2">
+              {truncateFileName(selectedVideos[0].name, 20)}
+            </p>
+          </div>
+        )}
       </div>
+
     </div>
   );
 };

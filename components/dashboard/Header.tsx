@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({ setIsModalOpen, setTitle, setContent, h
   }, [hasUploaded]);
 
   const handleCreditsClick = () => {
-    setTitle("Prevent disputes before they arise");
+    //setTitle("Prevent disputes before they arise");
     setContent(<Credit />);
     setIsModalOpen(true);
   };

@@ -16,7 +16,7 @@ const s3Client = new S3Client({
 export async function POST(req: NextRequest) {
   const data = await req.json();
 
-  const { images, videos } = data;
+  const { videos } = data;
 
   try {
     const session = await getServerSession(authOptions);
@@ -25,21 +25,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (images.length === 0) {
+    if (videos.length === 0) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
     const uuid = uuidv4();
     const presignedUrls = [];
 
-    const combined = [...images, ...videos];
-
-    for (const c of combined) {
-      const fileKey = `${uuid}/${c.name}`;
+    for (const v of videos) {
+      const fileKey = `${session.user.id}/${v.name}`;
       const command = new PutObjectCommand({
         Bucket: process.env.AWS_S3_BUCKET_NAME,
         Key: fileKey,
-        ContentType: c.type,
+        ContentType: v.type,
       });
       const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
       presignedUrls.push({ url, key: fileKey });

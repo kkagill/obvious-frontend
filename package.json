@@ -1,6 +1,7 @@
 {
-  "name": "rentalpeace.xyz",
-  "version": "0.1.0",
+  "name": "obvious-frontend",
+  "version": "1.0",
+  "author": "SJ",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -19,6 +20,7 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.1.0",
     "@aws-sdk/client-s3": "^3.577.0",
+    "@aws-sdk/client-sqs": "^3.624.0",
     "@aws-sdk/lib-storage": "^3.578.0",
     "@aws-sdk/s3-request-presigner": "^3.583.0",
     "@headlessui/react": "^1.7.18",
@@ -47,6 +49,7 @@
     "react-dropzone": "^14.2.3",
     "react-hot-toast": "^2.4.1",
     "react-icons": "^5.2.1",
+    "react-player": "^2.16.0",
     "react-spinners": "^0.13.8",
     "react-syntax-highlighter": "^15.5.0",
     "react-tooltip": "^5.26.4",
