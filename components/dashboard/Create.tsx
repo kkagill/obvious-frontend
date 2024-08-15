@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { FC, ReactNode, useState } from "react";
 import { AiOutlineArrowLeft } from 'react-icons/ai';
 import ProgressBar from "@/components/dashboard/steps/ProgressBar";
 import Modal from "@/components/Modal";
@@ -16,7 +16,7 @@ interface CreateProps {
 
 const TOTAL_STEPS = 4;
 
-const Create: React.FC<CreateProps> = ({ handleGoBack, setHasUploaded }) => {
+const Create: FC<CreateProps> = ({ handleGoBack, setHasUploaded }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [clipAmount, setClipAmount] = useState<string>('');
   const [duration, setDuration] = useState<string>('');
@@ -25,7 +25,7 @@ const Create: React.FC<CreateProps> = ({ handleGoBack, setHasUploaded }) => {
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalTitle, setModalTitle] = useState<string>('');
-  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [modalContent, setModalContent] = useState<ReactNode>(null);
 
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const previousStep = () => setCurrentStep(prev => prev - 1);

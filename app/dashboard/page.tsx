@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import Header from "@/components/dashboard/Header";
 import Modal from "@/components/Modal";
 import Create from "@/components/dashboard/Create";
@@ -13,7 +13,7 @@ import Clip from "@/components/dashboard/Clip";
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalTitle, setModalTitle] = useState<string>('');
-  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [modalContent, setModalContent] = useState<ReactNode>(null);
   const [showUpload, setShowUpload] = useState<boolean>(false);
   const [hasUploaded, setHasUploaded] = useState<boolean>(false);
   const [clipLoading, setClipLoading] = useState<boolean>(false);

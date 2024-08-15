@@ -1,7 +1,7 @@
 "use client";
 
 import Header from "@/components/dashboard/Header";
-import { useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useRouter } from 'next/navigation';
 import ReactPlayer from 'react-player';
@@ -15,7 +15,7 @@ export default function Clip({
 }) {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalTitle, setModalTitle] = useState<string>('');
-  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [modalContent, setModalContent] = useState<ReactNode>(null);
   const [showUpload, setShowUpload] = useState<boolean>(false);
   const [hasUploaded, setHasUploaded] = useState<boolean>(false);
   const [clipsLoading, setClipsLoading] = useState<boolean>(false);
