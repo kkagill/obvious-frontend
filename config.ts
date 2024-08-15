@@ -25,16 +25,15 @@ const config = {
             ? "price_1PGsygG"
             : "price_1PGsE9G",
         //  REQUIRED - Name of the plan, displayed on the pricing page
-        name: "Starter",
+        name: "Free",
         // A friendly description of the plan, displayed on the pricing page. Tip: explain why this plan and not others
-        description: "Perfect for a small condo",
+        description: "5 video uploads",
         credits: 40,
         // The price you want to display, the one user will be charged on Stripe.
-        price: 19,
+        price: 0,
         // If you have an anchor price (i.e. $29) that you want to display crossed out, put it here. Otherwise, leave it empty
-        priceAnchor: 99,
+        //priceAnchor: 99,
         features: [
-          { name: "Up to 50 Property Images" },
           { name: "24/7 support" },
         ],
       },
@@ -46,12 +45,12 @@ const config = {
         // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
         isFeatured: true,
         name: "Advanced",
-        description: "Perfect for a townhouse, house, or larger condo",
+        description: "100 video uploads",
         credits: 100,
         price: 42,
-        priceAnchor: 179,
+        priceAnchor: 89,
         features: [
-          { name: "Up to 300 Property Images" },
+          { name: "Up to 100 videos" },
           { name: "24/7 support" },
         ],
       },
@@ -62,50 +61,13 @@ const config = {
             : "price_1PGsVTGZR",
         // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
         isFeatured: true,
-        name: "Advanced",
-        description: "Perfect for a townhouse, house, or larger condo",
+        name: "Champion",
+        description: "350 video uploads",
         credits: 200,
-        price: 75,
-        priceAnchor: 179,
-        features: [
-          { name: "Decentralized Network Storage" },
-          { name: "Blockchain Security" },
-          { name: "Tamper-Proof" },
-          { name: "Up to 300 Property Images" },
-          { name: "24/7 support" },
-        ],
-      },
-      {
-        priceId:
-          process.env.NODE_ENV === "development"
-            ? "price_1PGszAGZRc"
-            : "price_1PGsVTGZRc",
-        // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
-        isFeatured: true,
-        name: "Advanced",
-        description: "Perfect for a townhouse, house, or larger condo",
-        credits: 300,
         price: 99,
         priceAnchor: 179,
         features: [
-          { name: "Up to 300 Property Images" },
-          { name: "24/7 support" },
-        ],
-      },
-      {
-        priceId:
-          process.env.NODE_ENV === "development"
-            ? "price_1PGszAGZ"
-            : "price_1PGsVTGZ",
-        // This plan will look different on the pricing page, it will be highlighted. You can only have one plan with isFeatured: true
-        isFeatured: true,
-        name: "Advanced",
-        description: "Perfect for a townhouse, house, or larger condo",
-        credits: 500,
-        price: 120,
-        priceAnchor: 179,
-        features: [
-          { name: "Up to 300 Property Images" },
+          { name: "Up to 350 videos" },
           { name: "24/7 support" },
         ],
       },
@@ -123,7 +85,7 @@ const config = {
     // REQUIRED — Email 'From' field to be used when sending magic login links
     fromNoReply: `Obvious <noreply@obvious.xyz>`,
     // REQUIRED — Email 'From' field to be used when sending other emails, like abandoned carts, updates etc..
-    fromAdmin: `Marc at Obvious <marc@obvious.xyz>`,
+    fromAdmin: `SJ at Obvious <sj@obvious.xyz>`,
     // Email shown to customer if need support. Leave empty if not needed => if empty, set up Crisp above, otherwise you won't be able to offer customer support."
     supportEmail: "support@obvious.xyz",
     // When someone replies to supportEmail sent by the app, forward it to the email below (otherwise it's lost). If you set supportEmail to empty, this will be ignored.
