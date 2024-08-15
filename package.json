@@ -9,6 +9,7 @@
     "postbuild": "next-sitemap",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "prisma:format": "prisma format",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
