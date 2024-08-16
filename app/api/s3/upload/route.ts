@@ -4,6 +4,7 @@ import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/next-auth";
 import prisma from '@/libs/prisma';
+import { serializeBigInt } from "@/libs/serializeBigInt";
 
 // Define an interface for the uploaded file metadata
 interface UploadedFile {
@@ -121,8 +122,10 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      const serializedVideo = serializeBigInt(video);
+      console.log({serializedVideo})
       await sendSQSMessage({
-        videoId: video.id,
+        videoId: serializedVideo.id,
         userId: video.userId,
         s3Key: video.s3Key,
         type: 'video',
