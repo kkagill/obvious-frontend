@@ -86,32 +86,43 @@ const Review: React.FC<ReviewProps> = ({
       const xhr = new XMLHttpRequest();
       xhr.open('PUT', url, true);
       xhr.setRequestHeader('Content-Type', file.type);
-
+  
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const progress = (event.loaded / event.total) * 100;
-          setUploadProgress(prevProgress => {
+          setUploadProgress((prevProgress) => {
             const newProgress = [...prevProgress];
             newProgress[index] = progress;
             return newProgress;
           });
         }
       };
-
+  
       xhr.onload = () => {
+        console.log(`Upload completed with status: ${xhr.status}`);
+        console.log(`Response: ${xhr.responseText}`);
+  
         if (xhr.status === 200) {
           uploadedFileKeysRef.current.push(key);
           resolve();
         } else {
+          console.error(`Error during upload. Status: ${xhr.status}, Response: ${xhr.responseText}`);
           reject(new Error('Failed to upload file to S3'));
         }
       };
-
+  
       xhr.onerror = () => {
+        console.error('Network error during upload.');
         reject(new Error('Failed to upload file to S3'));
       };
-
-      xhr.send(file);
+  
+      try {
+        console.log('Sending file to S3...');
+        xhr.send(file);
+      } catch (error) {
+        console.error('Error while sending the file:', error);
+        reject(new Error('Failed to upload file to S3'));
+      }
     });
   };
 
