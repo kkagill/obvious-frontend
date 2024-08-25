@@ -244,11 +244,11 @@ const Review: React.FC<ReviewProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-lg">
               <div>
                 <h3 className="text-md sm:text-lg font-semibold text-gray-700 text-center">Number of Clips</h3>
-                <p className="text-sm sm:text-base text-gray-600 text-center">{clipAmount}</p>
+                <p className="text-sm sm:text-base text-gray-600 text-center">{clipAmount ? clipAmount : 'Automatic'}</p>
               </div>
               <div>
                 <h3 className="text-md sm:text-lg font-semibold text-gray-700 text-center">Length of Each Clip</h3>
-                <p className="text-sm sm:text-base text-gray-600 text-center">{duration} seconds</p>
+                <p className="text-sm sm:text-base text-gray-600 text-center">{duration ? duration + ' seconds' : 'Automatic'}</p>
               </div>
             </div>
           </div>

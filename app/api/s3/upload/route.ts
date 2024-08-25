@@ -99,9 +99,11 @@ export async function POST(req: NextRequest) {
     const totalVideoSecondsInt = parseInt(totalVideoSeconds, 10);
     const totalVideoSizeMBInt = parseFloat(totalVideoSizeMB);
 
-    if (isNaN(clipAmountInt) || !durationInt || !s3FolderName || isNaN(totalVideoSecondsInt) || uploadedFiles.length === 0) {
+    if (!s3FolderName || isNaN(totalVideoSecondsInt) || uploadedFiles.length === 0) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
+    console.log({ clipAmountInt })
+    console.log({ durationInt })
 
     uploadedFileKeys = uploadedFiles.map(file => file.s3Key);
 
@@ -123,7 +125,7 @@ export async function POST(req: NextRequest) {
       });
 
       const serializedVideo = serializeBigInt(video);
-      console.log({serializedVideo})
+      
       await sendSQSMessage({
         videoId: serializedVideo.id,
         userId: video.userId,

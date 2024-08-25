@@ -79,8 +79,8 @@ model Video {
   fileName          String
   fileExtension     String
   creditsCharged    Int
-  numOfClips        Int
-  requestedDuration Int
+  numOfClips        Int?
+  requestedDuration Int?
   totalSeconds      Int
   sizeInMB          Decimal     @db.Decimal(7, 2)
   s3FolderName      String

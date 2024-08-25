@@ -26,7 +26,7 @@ const ClipAmount: React.FC<ClipAmountProps> = ({
   return (
     <div className="mx-auto w-full max-w-md p-4 bg-white shadow-md rounded-lg">
       <label className="block text-base md:text-lg font-semibold text-gray-700 mb-2">
-        How many clips need to be generated?
+        How many clips need to be generated? (optional)
       </label>
       <p className='text-sm pt-2 mb-2'>Enter a number between 1 and 3</p>
       <div className="flex items-center">
@@ -46,10 +46,9 @@ const ClipAmount: React.FC<ClipAmountProps> = ({
         </button>
         <button
           onClick={nextStep}
-          disabled={!clipAmount}
-          className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ${!clipAmount ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ${!clipAmount ? '' : ''}`}
         >
-          Next
+          {clipAmount ? 'Next' : 'Skip'}
         </button>
       </div>
     </div>

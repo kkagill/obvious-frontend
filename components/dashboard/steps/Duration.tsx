@@ -26,9 +26,9 @@ const Duration: React.FC<DurationProps> = ({
   return (
     <div className="mx-auto w-full max-w-md p-4 bg-white shadow-md rounded-lg">
       <label className="block text-base md:text-lg font-semibold text-gray-700 mb-2">
-        Choose clip length (seconds):
+        Choose clip length (optional):
       </label>
-      <p className='text-sm pt-2 mb-2'>Enter a number between 1 and 60</p>
+      <p className='text-sm pt-2 mb-2'>Enter a number between 1 and 60 (seconds)</p>
       <div className="flex items-center">
         <input
           type="text"
@@ -46,10 +46,9 @@ const Duration: React.FC<DurationProps> = ({
         </button>
         <button
           onClick={nextStep}
-          disabled={!duration}
-          className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300 ${!duration ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transform transition hover:scale-105 duration-300`}
         >
-          Next
+          {duration ? 'Next' : 'Skip'}
         </button>
       </div>
     </div>
