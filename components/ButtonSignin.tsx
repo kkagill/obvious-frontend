@@ -1,14 +1,11 @@
-/* eslint-disable @next/next/no-img-element */
-"use client";
-
-import { useSession, signIn } from "next-auth/react";
-import Link from "next/link";
+import React, { useState } from 'react';
+import { AiOutlineLogin } from 'react-icons/ai';
+import { useSession } from 'next-auth/react';
 import { useRouter } from "next/navigation";
-import config from "@/config";
+import config from '@/config';
+import Link from 'next/link';
+import SigninModal from './SigninModal';
 
-// A simple button to sign in with our providers (Google & Magic Links).
-// It automatically redirects user to callbackUrl (config.auth.callbackUrl) after login, which is normally a private page for users to manage their accounts.
-// If the user is already logged in, it will show their profile picture & redirect them to callbackUrl immediately.
 const ButtonSignin = ({
   text = "Sign in",
   extraStyle,
@@ -18,13 +15,18 @@ const ButtonSignin = ({
 }) => {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleClick = () => {
+  const openModal = () => {
     if (status === "authenticated") {
       router.push(config.auth.callbackUrl);
     } else {
-      signIn(undefined, { callbackUrl: config.auth.callbackUrl });
+      setIsModalOpen(true);
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   if (status === "authenticated") {
@@ -53,12 +55,17 @@ const ButtonSignin = ({
   }
 
   return (
-    <button
-      className={`btn ${extraStyle ? extraStyle : ""}`}
-      onClick={handleClick}
-    >
-      {text}
-    </button>
+    <div>
+      <button
+        onClick={openModal}
+        className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${extraStyle}`}
+      >
+        <AiOutlineLogin className="h-5 w-5 mr-1" />
+        {text}
+      </button>
+
+      {isModalOpen && <SigninModal onClose={closeModal} />}
+    </div>
   );
 };
 

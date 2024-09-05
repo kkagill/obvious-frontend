@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ButtonAccount from '../ButtonAccount';
 import Credit from './Credit';
-import apiClient from '@/libs/api';
+//import apiClient from '@/libs/api';
 import { FaSpinner } from 'react-icons/fa'; // Import a spinner icon (using react-icons as an example)
 
 interface HeaderProps {
@@ -18,8 +18,8 @@ const Header: React.FC<HeaderProps> = ({ setIsModalOpen, setTitle, setContent, h
   const fetchAvailableCredits = useCallback(async () => {
     try {
       setLoading(true);
-      const { user }: { user: any } = await apiClient.get("/user");
-      setAvailableCredits(user.availableCredits);
+      // const { user }: { user: any } = await apiClient.get("/user");
+      // setAvailableCredits(user.availableCredits);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching available credits:', error);

@@ -59,7 +59,7 @@ const PrivacyPolicy = () => {
         >
           {`Last Updated: May 16, 2024
 
-Thank you for visiting Obvious ("we," "us," or "our"). This Privacy Policy outlines how we collect, use, and protect your personal and non-personal information when you use our website located at https://obvious.xyz (the "Website").
+Thank you for visiting Obvious ("we," "us," or "our"). This Privacy Policy outlines how we collect, use, and protect your personal and non-personal information when you use our website located at https://obvious.app (the "Website").
 
 By accessing or using the Website, you agree to the terms of this Privacy Policy. If you do not agree with the practices described in this policy, please do not use the Website.
 
@@ -97,7 +97,7 @@ We may update this Privacy Policy from time to time to reflect changes in our pr
 
 If you have any questions, concerns, or requests related to this Privacy Policy, you can contact us at:
 
-Email: support@obvious.xyz
+Email: support@obvious.app
 
 For all other inquiries, please visit our Contact Us page on the Website.
 

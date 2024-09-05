@@ -5,7 +5,7 @@ import Header from "@/components/dashboard/Header";
 import Modal from "@/components/Modal";
 import Create from "@/components/dashboard/Create";
 import { AiOutlineUpload } from "react-icons/ai";
-import apiClient from "@/libs/api";
+//import apiClient from "@/libs/api";
 import { FaSpinner } from "react-icons/fa";
 import toast from "react-hot-toast";
 import Clip from "@/components/dashboard/Clip";
@@ -30,8 +30,8 @@ const Dashboard = () => {
   const fetchClips = useCallback(async () => {
     try {
       setClipLoading(true);
-      const response: any[] = await apiClient.get("/clip");
-      setUserClips(response);
+      // const response: any[] = await apiClient.get("/clip");
+      // setUserClips(response);
       setClipLoading(false);
     } catch (error) {
       console.error('Error fetching available clips:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import apiClient from '@/libs/api';
+//import apiClient from '@/libs/api';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import LoadingSpinnerWithProgress from '@/components/LoadingSpinnerWithProgress';
@@ -127,11 +127,11 @@ const Review: React.FC<ReviewProps> = ({
   };
 
   const deleteUploadedFiles = async (keys: string[]) => {
-    try {
-      await apiClient.post('/s3/delete', { keys });
-    } catch (error) {
-      console.error('Error deleting files:', error);
-    }
+    // try {
+    //   await apiClient.post('/s3/delete', { keys });
+    // } catch (error) {
+    //   console.error('Error deleting files:', error);
+    // }
   };
 
   const onUpload = async () => {
@@ -147,49 +147,49 @@ const Review: React.FC<ReviewProps> = ({
     const videos = selectedVideos.map(video => ({ type: video.type, name: video.name }));
 
     try {
-      const response: any = await apiClient.post('/s3/signed-url', {
-        videos,
-      });
+      // const response: any = await apiClient.post('/s3/signed-url', {
+      //   videos,
+      // });
 
-      const presignedUrls = response.data;
-      const s3FolderName = response.s3FolderName;
+      // const presignedUrls = response.data;
+      // const s3FolderName = response.s3FolderName;
 
-      if (!presignedUrls || !s3FolderName) {
-        toast.error("Sorry, could not upload. Please try again.");
-        setIsUploading(false);
-        setUploadFailed(true);
-        return;
-      }
+      // if (!presignedUrls || !s3FolderName) {
+      //   toast.error("Sorry, could not upload. Please try again.");
+      //   setIsUploading(false);
+      //   setUploadFailed(true);
+      //   return;
+      // }
 
-      const files = [
-        ...selectedVideos.map((file, i) => ({ file, url: presignedUrls[i].url, key: presignedUrls[i].key })),
-      ];
-      console.log({ files })
-      for (let i = 0; i < files.length; i++) {
-        await uploadFileToS3(files[i].file, files[i].url, files[i].key, i);
-      }
+      // const files = [
+      //   ...selectedVideos.map((file, i) => ({ file, url: presignedUrls[i].url, key: presignedUrls[i].key })),
+      // ];
+      // console.log({ files })
+      // for (let i = 0; i < files.length; i++) {
+      //   await uploadFileToS3(files[i].file, files[i].url, files[i].key, i);
+      // }
 
-      const uploadedFiles = files.map((fileData, index) => ({
-        fileName: fileData.file.name,
-        fileExtension: fileData.file.type.split('/')[1],
-        fileSize: bytesToMB(fileData.file.size).toFixed(2),
-        s3Key: fileData.key,
-        s3Location: fileData.url,
-        type: 'VIDEO'
-      }));
+      // const uploadedFiles = files.map((fileData, index) => ({
+      //   fileName: fileData.file.name,
+      //   fileExtension: fileData.file.type.split('/')[1],
+      //   fileSize: bytesToMB(fileData.file.size).toFixed(2),
+      //   s3Key: fileData.key,
+      //   s3Location: fileData.url,
+      //   type: 'VIDEO'
+      // }));
 
-      const totalVideoSizeBytes = calculateTotalSize(selectedVideos);
-      // Convert to MB and fix to 2 decimal places
-      const totalVideoSizeMB = bytesToMB(totalVideoSizeBytes).toFixed(2);
+      // const totalVideoSizeBytes = calculateTotalSize(selectedVideos);
+      // // Convert to MB and fix to 2 decimal places
+      // const totalVideoSizeMB = bytesToMB(totalVideoSizeBytes).toFixed(2);
 
-      await apiClient.post('/s3/upload', {
-        clipAmount,
-        duration,
-        totalVideoSeconds,
-        s3FolderName,
-        uploadedFiles,
-        totalVideoSizeMB
-      });
+      // await apiClient.post('/s3/upload', {
+      //   clipAmount,
+      //   duration,
+      //   totalVideoSeconds,
+      //   s3FolderName,
+      //   uploadedFiles,
+      //   totalVideoSizeMB
+      // });
 
       setIsUploading(false);
       setHasUploaded(true);

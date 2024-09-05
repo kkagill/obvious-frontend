@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { JSX } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import ButtonSignin from "./ButtonSignin";
+import ButtonRegister from "./ButtonRegister";
 import logo from "@/app/icon.png";
 import config from "@/config";
 
@@ -13,29 +13,33 @@ const links: {
   href: string;
   label: string;
 }[] = [
-  {
-    href: "/#pricing",
-    label: "Pricing",
-  },
-  {
-    href: "/#testimonials",
-    label: "Reviews",
-  },
-  {
-    href: "/#faq",
-    label: "FAQ",
-  },
-];
+    {
+      href: "/#pricing",
+      label: "Pricing",
+    },
+    {
+      href: "/#testimonials",
+      label: "Reviews",
+    },
+    {
+      href: "/#faq",
+      label: "FAQ",
+    },
+  ];
 
-const cta: JSX.Element = <ButtonSignin extraStyle="btn-primary" />;
+// CTA for both Sign In and Register buttons
+const cta: JSX.Element = (
+  <div className="flex space-x-2">
+    <ButtonSignin extraStyle="btn-primary" />
+    <ButtonRegister extraStyle="btn-secondary" />
+  </div>
+);
 
-// A header with a logo on the left, links in the center (like Pricing, etc...), and a CTA (like Get Started or Login) on the right.
-// The header is responsive, and on mobile, the links are hidden behind a burger button.
 const Header = () => {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  // setIsOpen(false) when the route changes (i.e: when the user clicks on a link on mobile)
+  // Close the menu when the route changes (e.g., user clicks a link)
   useEffect(() => {
     setIsOpen(false);
   }, [searchParams]);
@@ -46,10 +50,10 @@ const Header = () => {
         className="container flex items-center justify-between px-8 py-4 mx-auto"
         aria-label="Global"
       >
-        {/* Your logo/name on large screens */}
+        {/* Logo and name on large screens */}
         <div className="flex lg:flex-1">
           <Link
-            className="flex items-center gap-2 shrink-0 "
+            className="flex items-center gap-2 shrink-0"
             href="/"
             title={`${config.appName} homepage`}
           >
@@ -65,7 +69,8 @@ const Header = () => {
             <span className="font-extrabold text-lg">{config.appName}</span>
           </Link>
         </div>
-        {/* Burger button to open menu on mobile */}
+
+        {/* Burger button for mobile */}
         <div className="flex lg:hidden">
           <button
             type="button"
@@ -90,7 +95,7 @@ const Header = () => {
           </button>
         </div>
 
-        {/* Your links on large screens */}
+        {/* Links and CTA on large screens */}
         <div className="hidden lg:flex lg:justify-center lg:gap-12 lg:items-center">
           {links.map((link) => (
             <Link
@@ -105,18 +110,20 @@ const Header = () => {
         </div>
 
         {/* CTA on large screens */}
-        <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
+        <div className="hidden lg:flex lg:justify-end lg:flex-1">
+          {cta}
+        </div>
       </nav>
 
-      {/* Mobile menu, show/hide based on menu state. */}
+      {/* Mobile menu */}
       <div className={`relative z-50 ${isOpen ? "" : "hidden"}`}>
         <div
           className={`fixed inset-y-0 right-0 z-10 w-full px-8 py-4 overflow-y-auto bg-base-200 sm:max-w-sm sm:ring-1 sm:ring-neutral/10 transform origin-right transition ease-in-out duration-300`}
         >
-          {/* Your logo/name on small screens */}
+          {/* Logo on mobile */}
           <div className="flex items-center justify-between">
             <Link
-              className="flex items-center gap-2 shrink-0 "
+              className="flex items-center gap-2 shrink-0"
               title={`${config.appName} homepage`}
               href="/"
             >
@@ -154,7 +161,7 @@ const Header = () => {
             </button>
           </div>
 
-          {/* Your links on small screens */}
+          {/* Links on mobile */}
           <div className="flow-root mt-6">
             <div className="py-4">
               <div className="flex flex-col gap-y-4 items-start">
@@ -171,8 +178,12 @@ const Header = () => {
               </div>
             </div>
             <div className="divider"></div>
-            {/* Your CTA on small screens */}
-            <div className="flex flex-col">{cta}</div>
+
+            {/* CTA on mobile */}
+            <div className="flex flex-col space-y-4">
+              <ButtonSignin extraStyle="btn-primary" />
+              <ButtonRegister extraStyle="btn-secondary" />
+            </div>
           </div>
         </div>
       </div>
