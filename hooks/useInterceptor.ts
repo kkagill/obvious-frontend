@@ -1,8 +1,9 @@
 "use client";
+
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import { clientBackendAuth } from "../axios";
 import { useRefreshToken } from "./useRefreshToken";
+import { clientBackendAuth } from "@/libs/axios";
 
 const useInterceptor = () => {
   const { data: session } = useSession();

@@ -3,6 +3,7 @@ import { FaGoogle, FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import config from '@/config';
 import { signIn } from 'next-auth/react';
+import useRecaptcha from '@/hooks/useRecaptcha';
 
 interface RegisterModalProps {
   onClose: () => void;
@@ -14,10 +15,28 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State to toggle confirm password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const recaptchaToken = useRecaptcha();
   const router = useRouter();
+
+  // Client-side password validation
+  const validatePassword = (value: string): string | null => {
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    if (!value.match(/\d/)) {
+      return 'Password must contain at least 1 number';
+    }
+    if (!value.match(/[a-zA-Z]/)) {
+      return 'Password must contain at least 1 letter';
+    }
+    if (!value.match(/[!@#$%^&*(),.?":{}|<>]/)) {
+      return 'Password must contain at least 1 special character';
+    }
+    return null;
+  };
 
   // Handle form submission for registration
   const handleRegisterSubmit = async (e: React.FormEvent) => {
@@ -25,9 +44,54 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
     setLoading(true);
     setError('');
 
+    // Validate password
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      setLoading(false);
+      return;
+    }
+
     // Check if passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
+
+    // Ensure recaptchaToken is available before proceeding
+    if (!recaptchaToken) {
+      setError('Please complete the reCAPTCHA');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/recaptcha', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recaptchaToken,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        console.error(`Registration failure with score: ${data.score}`);
+        setError('Registration Failed. Please try again.');
+        setLoading(false);
+        return;
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setError('An error occurred. Please try again.');
       setLoading(false);
       return;
     }
@@ -58,7 +122,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
         if (signInRes?.status !== 200) {
           setError('Login failed. Please try again.');
         } else {
-          onClose();
           router.push(config.auth.callbackUrl);
         }
       }

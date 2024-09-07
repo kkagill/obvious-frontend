@@ -1,7 +1,7 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
-import { clientBackendPublic } from "../axios";
+import { clientBackendPublic } from "@/libs/axios";
+import { useSession } from "next-auth/react";
 
 export const useRefreshToken = () => {
   const { update, data: session } = useSession();
@@ -10,6 +10,7 @@ export const useRefreshToken = () => {
     const res = await clientBackendPublic.post("/auth/refresh-tokens", {
       refreshToken: session?.user.jwt.refresh.token,
     });
+    
     // update session
     await update({
       ...session,

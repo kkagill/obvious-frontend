@@ -31,6 +31,8 @@
     "@prisma/client": "^5.14.0",
     "@supabase/auth-helpers-nextjs": "^0.8.7",
     "@supabase/supabase-js": "^2.41.1",
+    "@tanstack/react-query": "^5.55.0",
+    "@tanstack/react-query-devtools": "^5.55.0",
     "axios": "^1.6.8",
     "cloudinary": "^2.2.0",
     "crisp-sdk-web": "^1.0.22",
@@ -38,7 +40,6 @@
     "eslint-config-next": "13.4.19",
     "form-data": "^4.0.0",
     "formidable": "^3.5.1",
-    "mailgun.js": "^9.4.1",
     "next": "^14.1.4",
     "next-auth": "^4.24.7",
     "next-plausible": "^3.12.0",
@@ -48,6 +49,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-dropzone": "^14.2.3",
+    "react-google-recaptcha-v3": "^1.10.1",
     "react-hot-toast": "^2.4.1",
     "react-icons": "^5.2.1",
     "react-player": "^2.16.0",
@@ -59,6 +61,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@tanstack/eslint-plugin-query": "^5.53.0",
     "@types/formidable": "^3.4.5",
     "@types/jest": "^29.5.12",
     "@types/mdx": "^2.0.12",

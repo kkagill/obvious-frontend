@@ -9,6 +9,8 @@ import { AiOutlineUpload } from "react-icons/ai";
 import { FaSpinner } from "react-icons/fa";
 import toast from "react-hot-toast";
 import Clip from "@/components/dashboard/Clip";
+import { useSession } from "next-auth/react";
+import useInterceptor from "@/hooks/useInterceptor";
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -18,6 +20,29 @@ const Dashboard = () => {
   const [hasUploaded, setHasUploaded] = useState<boolean>(false);
   const [clipLoading, setClipLoading] = useState<boolean>(false);
   const [userClips, setUserClips] = useState<any[]>([]);
+
+  // const { data: session } = useSession();
+  // const clientBackendAuth = useInterceptor();
+
+  // useEffect(() => {
+  //   const fetchUserData = async () => {
+  //     const accessToken = session.user.jwt.access.token;
+
+  //     try {
+  //       const response = await clientBackendAuth.get(`/users/${session.user.id}`, {
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //         },
+  //       });
+  //       console.log({response})
+  //     } catch (error) {
+  //       console.error('Error fetching user data:', error);
+  //     }
+  //   };
+
+  //   fetchUserData();
+  // }, [session]);
+
 
   const handleUploadClick = () => {
     setShowUpload(true);

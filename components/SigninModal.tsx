@@ -3,6 +3,7 @@ import { signIn } from 'next-auth/react';
 import { FaGoogle, FaSpinner, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import config from '@/config';
+import useRecaptcha from '@/hooks/useRecaptcha';
 
 interface SigninModalProps {
   onClose: () => void;
@@ -13,8 +14,9 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
+  const recaptchaToken = useRecaptcha();
   const router = useRouter();
 
   // Handle form submission for email/password login
@@ -22,6 +24,44 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Ensure recaptchaToken is available before proceeding
+    if (!recaptchaToken) {
+      setError('Please complete the reCAPTCHA');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/recaptcha', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recaptchaToken,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      console.log({ data })
+      if (!data.success) {
+        console.error(`Signin failure with score: ${data.score}`);
+        setError('Signin Failed. Please try again.');
+        setLoading(false);
+        return;
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setError('An error occurred. Please try again.');
+      setLoading(false);
+      return;
+    }
 
     const res = await signIn('credentials', {
       email,
@@ -32,7 +72,6 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
     if (res?.status !== 200) {
       setError('Incorrect email or password');
     } else {
-      onClose();
       router.push(config.auth.callbackUrl);
     }
 
@@ -120,7 +159,7 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+              className="absolute inset-y-0 right-3 flex items-center text-gray-500 pt-5"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
