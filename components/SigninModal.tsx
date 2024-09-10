@@ -49,7 +49,7 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
       }
 
       const data = await response.json();
-      console.log({ data })
+      
       if (!data.success) {
         console.error(`Signin failure with score: ${data.score}`);
         setError('Signin Failed. Please try again.');

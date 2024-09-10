@@ -5,7 +5,6 @@ import { ReactNode, useCallback, useEffect, useState } from "react";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useRouter } from 'next/navigation';
 import ReactPlayer from 'react-player';
-import apiClient from "@/libs/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function Clip({
@@ -16,19 +15,28 @@ export default function Clip({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalTitle, setModalTitle] = useState<string>('');
   const [modalContent, setModalContent] = useState<ReactNode>(null);
-  const [showUpload, setShowUpload] = useState<boolean>(false);
   const [hasUploaded, setHasUploaded] = useState<boolean>(false);
   const [clipsLoading, setClipsLoading] = useState<boolean>(false);
   const [userClips, setUserClips] = useState<any[]>([]);
 
   const router = useRouter();
-  const videoId = params?.videoId; // Ensure videoId is correctly accessed
+  const videoId = params?.videoId;
 
   const fetchClips = useCallback(async (videoId: string) => {
     try {
       setClipsLoading(true);
-      const response: any[] = await apiClient.post(`/clips`, { videoId });
-      setUserClips(response);
+
+      const response = await fetch(`/api/clips?videoId=${videoId}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const { data } = await response.json();
+
+      setUserClips(data);
       setClipsLoading(false);
     } catch (error) {
       console.error('Error fetching available clips:', error);

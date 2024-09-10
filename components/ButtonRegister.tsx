@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AiOutlineUserAdd } from 'react-icons/ai';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useSession, getSession } from 'next-auth/react';
 import RegisterModal from './RegisterModal';
 
 const ButtonRegister = ({
@@ -13,6 +12,15 @@ const ButtonRegister = ({
 }) => {
   const { data: session, status } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentSession, setCurrentSession] = useState(session);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const updatedSession = await getSession(); // Fetch the latest session data
+      setCurrentSession(updatedSession);
+    };
+    checkSession();
+  }, [status]);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -22,7 +30,7 @@ const ButtonRegister = ({
     setIsModalOpen(false);
   };
 
-  if (status === 'authenticated') {
+  if (status === 'authenticated' && currentSession) {
     return null;
   }
 

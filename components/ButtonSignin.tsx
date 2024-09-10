@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AiOutlineLogin } from 'react-icons/ai';
-import { useSession } from 'next-auth/react';
-import { useRouter } from "next/navigation";
+import { useSession, getSession } from 'next-auth/react';
 import config from '@/config';
 import Link from 'next/link';
 import SigninModal from './SigninModal';
@@ -13,43 +12,55 @@ const ButtonSignin = ({
   text?: string;
   extraStyle?: string;
 }) => {
-  const router = useRouter();
   const { data: session, status } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentSession, setCurrentSession] = useState(session);
+  const [randomColor, setRandomColor] = useState<string>('');
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const updatedSession = await getSession(); // Fetch the latest session data
+      setCurrentSession(updatedSession);
+    };
+    checkSession();
+  }, [status]);
+
+  useEffect(() => {
+    // Generate random color only on the client side
+    const getRandomColor = () => {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    };
+
+    setRandomColor(getRandomColor());
+  }, []); // Empty dependency array ensures this runs only on the client side
 
   const openModal = () => {
-    if (status === "authenticated") {
-      router.push(config.auth.callbackUrl);
-    } else {
-      setIsModalOpen(true);
-    }
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
   };
 
-  if (status === "authenticated") {
+  if (status === "authenticated" && currentSession) {
     return (
       <Link
         href={config.auth.callbackUrl}
         className={`btn ${extraStyle ? extraStyle : ""}`}
       >
-        {session.user?.image ? (
-          <img
-            src={session.user?.image}
-            alt={session.user?.name || "Account"}
-            className="w-6 h-6 rounded-full shrink-0"
-            referrerPolicy="no-referrer"
-            width={24}
-            height={24}
-          />
-        ) : (
-          <span className="w-6 h-6 bg-base-300 flex justify-center items-center rounded-full shrink-0">
-            {session.user?.name?.charAt(0) || session.user?.email?.charAt(0)}
-          </span>
-        )}
-        {session.user?.name || session.user?.email || "Account"}
+        <span
+          className="w-6 h-6 flex justify-center items-center rounded-full shrink-0"
+          style={{ backgroundColor: randomColor }} // Use client-generated random color
+        >
+          {currentSession?.user?.email?.charAt(0)}
+        </span>
+
+        {currentSession?.user?.email?.split('@')[0]}
       </Link>
     );
   }

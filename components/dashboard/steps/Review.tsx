@@ -86,7 +86,7 @@ const Review: React.FC<ReviewProps> = ({
       const xhr = new XMLHttpRequest();
       xhr.open('PUT', url, true);
       xhr.setRequestHeader('Content-Type', file.type);
-  
+
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           const progress = (event.loaded / event.total) * 100;
@@ -97,11 +97,11 @@ const Review: React.FC<ReviewProps> = ({
           });
         }
       };
-  
+
       xhr.onload = () => {
         console.log(`Upload completed with status: ${xhr.status}`);
         console.log(`Response: ${xhr.responseText}`);
-  
+
         if (xhr.status === 200) {
           uploadedFileKeysRef.current.push(key);
           resolve();
@@ -110,12 +110,12 @@ const Review: React.FC<ReviewProps> = ({
           reject(new Error('Failed to upload file to S3'));
         }
       };
-  
+
       xhr.onerror = () => {
         console.error('Network error during upload.');
         reject(new Error('Failed to upload file to S3'));
       };
-  
+
       try {
         console.log('Sending file to S3...');
         xhr.send(file);
@@ -127,11 +127,17 @@ const Review: React.FC<ReviewProps> = ({
   };
 
   const deleteUploadedFiles = async (keys: string[]) => {
-    // try {
-    //   await apiClient.post('/s3/delete', { keys });
-    // } catch (error) {
-    //   console.error('Error deleting files:', error);
-    // }
+    try {
+      await fetch('/api/s3/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ keys }),
+      });
+    } catch (error) {
+      console.error('Error deleting files:', error);
+    }
   };
 
   const onUpload = async () => {
@@ -147,49 +153,69 @@ const Review: React.FC<ReviewProps> = ({
     const videos = selectedVideos.map(video => ({ type: video.type, name: video.name }));
 
     try {
-      // const response: any = await apiClient.post('/s3/signed-url', {
-      //   videos,
-      // });
+      const response = await fetch('/api/s3/signed-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ videos }),
+      });
 
-      // const presignedUrls = response.data;
-      // const s3FolderName = response.s3FolderName;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get signed URLs');
+      }
 
-      // if (!presignedUrls || !s3FolderName) {
-      //   toast.error("Sorry, could not upload. Please try again.");
-      //   setIsUploading(false);
-      //   setUploadFailed(true);
-      //   return;
-      // }
+      const responseData = await response.json();
+      const { signedUrls, s3FolderName } = responseData;
 
-      // const files = [
-      //   ...selectedVideos.map((file, i) => ({ file, url: presignedUrls[i].url, key: presignedUrls[i].key })),
-      // ];
-      // console.log({ files })
-      // for (let i = 0; i < files.length; i++) {
-      //   await uploadFileToS3(files[i].file, files[i].url, files[i].key, i);
-      // }
+      if (!signedUrls || !s3FolderName) {
+        toast.error("Sorry, could not upload. Please try again.");
+        setIsUploading(false);
+        setUploadFailed(true);
+        return;
+      }
 
-      // const uploadedFiles = files.map((fileData, index) => ({
-      //   fileName: fileData.file.name,
-      //   fileExtension: fileData.file.type.split('/')[1],
-      //   fileSize: bytesToMB(fileData.file.size).toFixed(2),
-      //   s3Key: fileData.key,
-      //   s3Location: fileData.url,
-      //   type: 'VIDEO'
-      // }));
+      const files = [
+        ...selectedVideos.map((file, i) => ({ file, url: signedUrls[i].url, key: signedUrls[i].key })),
+      ];
+      console.log({ files })
+      for (let i = 0; i < files.length; i++) {
+        await uploadFileToS3(files[i].file, files[i].url, files[i].key, i);
+      }
 
-      // const totalVideoSizeBytes = calculateTotalSize(selectedVideos);
-      // // Convert to MB and fix to 2 decimal places
-      // const totalVideoSizeMB = bytesToMB(totalVideoSizeBytes).toFixed(2);
+      const uploadedFiles = files.map((fileData, index) => ({
+        fileName: fileData.file.name,
+        fileExtension: fileData.file.type.split('/')[1],
+        fileSize: bytesToMB(fileData.file.size).toFixed(2),
+        s3Key: fileData.key,
+        s3Location: fileData.url,
+        type: 'VIDEO'
+      }));
 
-      // await apiClient.post('/s3/upload', {
-      //   clipAmount,
-      //   duration,
-      //   totalVideoSeconds,
-      //   s3FolderName,
-      //   uploadedFiles,
-      //   totalVideoSizeMB
-      // });
+      const totalVideoSizeBytes = calculateTotalSize(selectedVideos);
+      // Convert to MB and fix to 2 decimal places
+      const totalVideoSizeMB = bytesToMB(totalVideoSizeBytes).toFixed(2);
+
+      const responseUpload = await fetch('/api/s3/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clipAmount,
+          duration,
+          totalVideoSeconds,
+          s3FolderName,
+          uploadedFiles,
+          totalVideoSizeMB
+        }),
+      });
+
+      if (!responseUpload.ok) {
+        const errorData = await responseUpload.json();
+        throw new Error(errorData.error);
+      }
 
       setIsUploading(false);
       setHasUploaded(true);
@@ -201,6 +227,8 @@ const Review: React.FC<ReviewProps> = ({
         if (attempts !== maxAttempts) {
           toast.error("Upload failed. Please try again.");
         }
+      } else {
+        toast.error("Upload failed. Please try again.");
       }
 
       // Delete uploaded files if an error occurs

@@ -1,68 +1,66 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Popover, Transition } from "@headlessui/react";
 import { useSession, signOut } from "next-auth/react";
 //import apiClient from "@/libs/api";
 
-// A button to show user some account actions
-//  1. Billing: open a Stripe Customer Portal to manage their billing (cancel subscription, update payment method, etc.).
-//     You have to manually activate the Customer Portal in your Stripe Dashboard (https://dashboard.stripe.com/test/settings/billing/portal)
-//     This is only available if the customer has a customerId (they made a purchase previously)
-//  2. Logout: sign out and go back to homepage
-// See more at https://shipfa.st/docs/components/buttonAccount
 const ButtonAccount = () => {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [randomColor, setRandomColor] = useState<string>("");
+
+  useEffect(() => {
+    // Generate random color only on the client side
+    const getRandomColor = () => {
+      const letters = "0123456789ABCDEF";
+      let color = "#";
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    };
+    setRandomColor(getRandomColor());
+  }, []); // Empty dependency array ensures this runs only once on the client side
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: "/" });
+    signOut({ callbackUrl: "/", redirect: true });
   };
+
   const handleBilling = async () => {
     setIsLoading(true);
-
-    // try {
-    //   const { url }: { url: string } = await apiClient.post(
-    //     "/stripe/create-portal",
-    //     {
-    //       returnUrl: window.location.href,
-    //     }
-    //   );
-
-    //   window.location.href = url;
-    // } catch (e) {
-    //   console.error(e);
-    // }
-
-    setIsLoading(false);
+    try {
+      // const { url }: { url: string } = await apiClient.post(
+      //   "/stripe/create-portal",
+      //   {
+      //     returnUrl: window.location.href,
+      //   }
+      // );
+      // window.location.href = url;
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Don't show anything if not authenticated (we don't have any info about the user)
-  if (status === "unauthenticated") return null;
+  if (status !== "authenticated" || !session) {
+    return null;
+  }
 
   return (
     <Popover className="relative z-10">
       {({ open }) => (
         <>
           <Popover.Button className="btn">
-            {session?.user?.image ? (
-              <img
-                src={session?.user?.image}
-                alt={session?.user?.name || "Account"}
-                className="w-6 h-6 rounded-full shrink-0"
-                referrerPolicy="no-referrer"
-                width={24}
-                height={24}
-              />
-            ) : (
-              <span className="w-6 h-6 bg-base-300 flex justify-center items-center rounded-full shrink-0">
-                {session?.user?.name?.charAt(0) ||
-                  session?.user?.email?.charAt(0)}
-              </span>
-            )}
-
-            {session?.user?.name || "Account"}
+            <span
+              className="w-6 h-6 flex justify-center items-center rounded-full shrink-0"
+              style={{ backgroundColor: randomColor }} // Apply client-generated random color
+            >
+              {session?.user?.email?.charAt(0)}
+            </span>
+            {session?.user?.email?.split("@")[0]}
 
             {isLoading ? (
               <span className="loading loading-spinner loading-xs"></span>
@@ -71,8 +69,9 @@ const ButtonAccount = () => {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                className={`w-5 h-5 duration-200 opacity-50 ${open ? "transform rotate-180 " : ""
-                  }`}
+                className={`w-5 h-5 duration-200 opacity-50 ${
+                  open ? "transform rotate-180 " : ""
+                }`}
               >
                 <path
                   fillRule="evenodd"
@@ -96,6 +95,7 @@ const ButtonAccount = () => {
                   <button
                     className="flex items-center gap-2 hover:bg-base-300 duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
                     onClick={handleBilling}
+                    disabled={isLoading} // Disable button while loading
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

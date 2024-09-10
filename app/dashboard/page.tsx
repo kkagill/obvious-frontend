@@ -21,29 +21,6 @@ const Dashboard = () => {
   const [clipLoading, setClipLoading] = useState<boolean>(false);
   const [userClips, setUserClips] = useState<any[]>([]);
 
-  // const { data: session } = useSession();
-  // const clientBackendAuth = useInterceptor();
-
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     const accessToken = session.user.jwt.access.token;
-
-  //     try {
-  //       const response = await clientBackendAuth.get(`/users/${session.user.id}`, {
-  //         headers: {
-  //           Authorization: `Bearer ${accessToken}`,
-  //         },
-  //       });
-  //       console.log({response})
-  //     } catch (error) {
-  //       console.error('Error fetching user data:', error);
-  //     }
-  //   };
-
-  //   fetchUserData();
-  // }, [session]);
-
-
   const handleUploadClick = () => {
     setShowUpload(true);
   };
@@ -55,12 +32,36 @@ const Dashboard = () => {
   const fetchClips = useCallback(async () => {
     try {
       setClipLoading(true);
-      // const response: any[] = await apiClient.get("/clip");
-      // setUserClips(response);
+
+      const res = await fetch('/api/dashboard', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error('Unauthorized');
+        }
+        throw new Error('Network response was not ok');
+      }
+      const { data } = await res.json();
+
+      setUserClips(data);
       setClipLoading(false);
+      
+      return true;
     } catch (error) {
       console.error('Error fetching available clips:', error);
+      if (error.message === 'Unauthorized') {
+        toast.error('An error occurred. Please logout and try again.', { duration: 5000 });
+      } else {
+        toast.error('An error occurred. Please try again.', { duration: 5000 });
+      }
       setClipLoading(false);
+      return false;
     }
   }, []);
 
@@ -69,11 +70,17 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (hasUploaded) {
-      fetchClips();
-      toast.success("Upload successful! We'll notify you once the clips are generated.", { duration: 5000 });
+    const handleUploadSuccess = async () => {
+      const isFetchSuccessful = await fetchClips();
+      if (isFetchSuccessful) {
+        toast.success("Upload successful! We'll notify you once the clips are generated.", { duration: 5000 });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       setHasUploaded(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    if (hasUploaded) {
+      handleUploadSuccess();
     }
   }, [hasUploaded]);
 
