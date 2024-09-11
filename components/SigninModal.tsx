@@ -12,7 +12,8 @@ interface SigninModalProps {
 const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loadingSignIn, setLoadingSignIn] = useState(false);  // Separate loading state for "Sign In"
+  const [loadingGoogle, setLoadingGoogle] = useState(false);  // Separate loading state for "Sign in with Google"
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -22,13 +23,13 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
   // Handle form submission for email/password login
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingSignIn(true);
     setError('');
 
     // Ensure recaptchaToken is available before proceeding
     if (!recaptchaToken) {
       setError('Please complete the reCAPTCHA');
-      setLoading(false);
+      setLoadingSignIn(false);
       return;
     }
 
@@ -53,13 +54,13 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
       if (!data.success) {
         console.error(`Signin failure with score: ${data.score}`);
         setError('Signin Failed. Please try again.');
-        setLoading(false);
+        setLoadingSignIn(false);
         return;
       }
     } catch (error) {
       console.error('Error submitting form:', error);
       setError('An error occurred. Please try again.');
-      setLoading(false);
+      setLoadingSignIn(false);
       return;
     }
 
@@ -75,11 +76,18 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
       router.push(config.auth.callbackUrl);
     }
 
-    setLoading(false);
+    setLoadingSignIn(false);
   };
 
   const handleGoogleLogin = async () => {
-    await signIn('google', { callbackUrl: config.auth.callbackUrl });
+    setLoadingGoogle(true); // Show spinner for Google sign-in
+    try {
+      await signIn('google', { callbackUrl: config.auth.callbackUrl });
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setError('An error occurred with Google sign-in. Please try again.');
+      setLoadingGoogle(false); // Stop spinner on failure
+    }
   };
 
   return (
@@ -168,10 +176,10 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loadingSignIn || loadingGoogle} // Disable if either loading state is true
             className="w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold shadow-md hover:bg-indigo-700 transition-colors duration-300 ease-in-out focus:outline-none flex justify-center items-center"
           >
-            {loading ? (
+            {loadingSignIn ? (
               <>
                 <FaSpinner className="animate-spin text-gray-200 text-xl mr-2" />
                 Signing in...
@@ -194,9 +202,19 @@ const SigninModal: React.FC<SigninModalProps> = ({ onClose }) => {
           <button
             onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center py-2 bg-red-500 text-white rounded-lg font-semibold shadow-md hover:bg-red-600 transition-colors duration-300 ease-in-out focus:outline-none"
+            disabled={loadingGoogle || loadingSignIn} // Disable if either loading state is true
           >
-            <FaGoogle className="mr-2" />
-            Sign in with Google
+            {loadingGoogle ? (
+              <>
+                <FaSpinner className="animate-spin text-white text-xl mr-2" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <FaGoogle className="mr-2" />
+                Sign in with Google
+              </>
+            )}
           </button>
         </div>
       </div>

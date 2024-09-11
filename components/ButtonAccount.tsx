@@ -1,14 +1,12 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect } from "react";
 import { Popover, Transition } from "@headlessui/react";
 import { useSession, signOut } from "next-auth/react";
-//import apiClient from "@/libs/api";
 
 const ButtonAccount = () => {
   const { data: session, status } = useSession();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingLogout, setIsLoadingLogout] = useState<boolean>(false);
   const [randomColor, setRandomColor] = useState<string>("");
 
   useEffect(() => {
@@ -24,25 +22,19 @@ const ButtonAccount = () => {
     setRandomColor(getRandomColor());
   }, []); // Empty dependency array ensures this runs only once on the client side
 
-  const handleSignOut = () => {
-    signOut({ callbackUrl: "/", redirect: true });
+  const handleSignOut = async () => {
+    setIsLoadingLogout(true); // Show spinner only for Logout button
+    try {
+      await signOut({ callbackUrl: "/", redirect: true });
+    } catch (e) {
+      console.error("Error during sign out", e);
+    } finally {
+      setIsLoadingLogout(false); // Hide spinner
+    }
   };
 
   const handleBilling = async () => {
-    setIsLoading(true);
-    try {
-      // const { url }: { url: string } = await apiClient.post(
-      //   "/stripe/create-portal",
-      //   {
-      //     returnUrl: window.location.href,
-      //   }
-      // );
-      // window.location.href = url;
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
+    // Billing logic, spinner not needed
   };
 
   if (status !== "authenticated" || !session) {
@@ -62,24 +54,19 @@ const ButtonAccount = () => {
             </span>
             {session?.user?.email?.split("@")[0]}
 
-            {isLoading ? (
-              <span className="loading loading-spinner loading-xs"></span>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className={`w-5 h-5 duration-200 opacity-50 ${
-                  open ? "transform rotate-180 " : ""
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`w-5 h-5 duration-200 opacity-50 ${open ? "transform rotate-180 " : ""
                 }`}
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            )}
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clipRule="evenodd"
+              />
+            </svg>
           </Popover.Button>
           <Transition
             enter="transition duration-100 ease-out"
@@ -95,7 +82,6 @@ const ButtonAccount = () => {
                   <button
                     className="flex items-center gap-2 hover:bg-base-300 duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
                     onClick={handleBilling}
-                    disabled={isLoading} // Disable button while loading
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -114,25 +100,35 @@ const ButtonAccount = () => {
                   <button
                     className="flex items-center gap-2 hover:bg-error/20 hover:text-error duration-200 py-1.5 px-4 w-full rounded-lg font-medium"
                     onClick={handleSignOut}
+                    disabled={isLoadingLogout} // Disable button while loading
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z"
-                        clipRule="evenodd"
-                      />
-                      <path
-                        fillRule="evenodd"
-                        d="M6 10a.75.75 0 01.75-.75h9.546l-1.048-.943a.75.75 0 111.004-1.114l2.5 2.25a.75.75 0 010 1.114l-2.5 2.25a.75.75 0 11-1.004-1.114l1.048-.943H6.75A.75.75 0 016 10z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Logout
+                    {isLoadingLogout ? (
+                      <>
+                        <span className="loading loading-spinner loading-xs"></span>
+                        <span> Logging out...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          className="w-5 h-5"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M3 4.25A2.25 2.25 0 015.25 2h5.5A2.25 2.25 0 0113 4.25v2a.75.75 0 01-1.5 0v-2a.75.75 0 00-.75-.75h-5.5a.75.75 0 00-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 00.75-.75v-2a.75.75 0 011.5 0v2A2.25 2.25 0 0110.75 18h-5.5A2.25 2.25 0 013 15.75V4.25z"
+                            clipRule="evenodd"
+                          />
+                          <path
+                            fillRule="evenodd"
+                            d="M6 10a.75.75 0 01.75-.75h9.546l-1.048-.943a.75.75 0 111.004-1.114l2.5 2.25a.75.75 0 010 1.114l-2.5 2.25a.75.75 0 11-1.004-1.114l1.048-.943H6.75A.75.75 0 016 10z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Logout
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

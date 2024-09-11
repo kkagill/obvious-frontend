@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { clientBackendPublic } from "./axios";
 import type { AuthOptions } from "next-auth";
 
 export const authOptions: AuthOptions = {
@@ -27,16 +26,20 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const response = await clientBackendPublic.post(
-            '/auth/login',
-            {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
               email: credentials?.email,
-              password: credentials?.password
-            }
-          );
+              password: credentials?.password,
+            }),
+          });
 
-          if (response.data) {
-            return response.data;
+          if (response.ok) {
+            const data = await response.json();
+            return data;
           }
 
           return null;
@@ -55,12 +58,19 @@ export const authOptions: AuthOptions = {
     async signOut({ token }) {
       const refreshToken = token?.jwt?.refresh?.token;
       try {
-        await clientBackendPublic.post(
-          '/auth/logout',
-          {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
             refreshToken: refreshToken,
-          }
-        );
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Logout failed');
+        }
       } catch (ex: any) {
         throw new Error(JSON.stringify({ error: ex?.response.data }))
       }
@@ -95,18 +105,23 @@ export const authOptions: AuthOptions = {
             scope: account?.scope!,
           };
 
-          const response = await clientBackendPublic.post(
-            '/auth/login-oauth',
-            payload,
-            config
-          );
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login-oauth`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(config?.headers || {}), // Include additional headers from config, if any
+            },
+            body: JSON.stringify(payload),
+          });
 
-          if (response.data) {
+          if (response.ok) {
+            const data = await response.json();
             // Map JWT to user for the session and token
-            // Need to do this for google provider so it can go down to async jwt below
-            // Otherwise google login won't have custom token from our backend
-            user.id = response.data.id;
-            user.jwt = response.data.jwt;
+            // Need to do this for Google provider so it can go down to async JWT below
+            // Otherwise, Google login won't have a custom token from our backend
+            user.id = data.id;
+            user.jwt = data.jwt;
+
             return true;
           }
 

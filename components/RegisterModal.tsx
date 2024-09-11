@@ -13,7 +13,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loadingSignUp, setLoadingSignUp] = useState(false);  // Separate loading state for "Sign Up"
+  const [loadingGoogle, setLoadingGoogle] = useState(false);  // Separate loading state for "Sign up with Google"
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -41,28 +42,28 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
   // Handle form submission for registration
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingSignUp(true);
     setError('');
 
     // Validate password
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
-      setLoading(false);
+      setLoadingSignUp(false);
       return;
     }
 
     // Check if passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
-      setLoading(false);
+      setLoadingSignUp(false);
       return;
     }
 
     // Ensure recaptchaToken is available before proceeding
     if (!recaptchaToken) {
       setError('Please complete the reCAPTCHA');
-      setLoading(false);
+      setLoadingSignUp(false);
       return;
     }
 
@@ -86,13 +87,13 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
       if (!data.success) {
         console.error(`Registration failure with score: ${data.score}`);
         setError('Registration Failed. Please try again.');
-        setLoading(false);
+        setLoadingSignUp(false);
         return;
       }
     } catch (error) {
       console.error('Error submitting form:', error);
       setError('An error occurred. Please try again.');
-      setLoading(false);
+      setLoadingSignUp(false);
       return;
     }
 
@@ -129,11 +130,18 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
       setError('An error occurred. Please try again.');
     }
 
-    setLoading(false);
+    setLoadingSignUp(false);
   };
 
   const handleGoogleRegister = async () => {
-    await signIn('google', { callbackUrl: config.auth.callbackUrl });
+    setLoadingGoogle(true); // Show spinner for Google register
+    try {
+      await signIn('google', { callbackUrl: config.auth.callbackUrl });
+    } catch (error) {
+      console.error('Google sign-up error:', error);
+      setError('An error occurred with Google sign-up. Please try again.');
+      setLoadingGoogle(false); // Stop spinner on failure
+    }
   };
 
   return (
@@ -247,10 +255,10 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loadingSignUp || loadingGoogle} // Disable if either loading state is true
             className="w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold shadow-md hover:bg-indigo-700 transition-colors duration-300 ease-in-out focus:outline-none flex justify-center items-center"
           >
-            {loading ? (
+            {loadingSignUp ? (
               <>
                 <FaSpinner className="animate-spin text-gray-200 text-xl mr-2" />
                 Registering...
@@ -273,9 +281,19 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
           <button
             onClick={handleGoogleRegister}
             className="w-full flex items-center justify-center py-2 bg-red-500 text-white rounded-lg font-semibold shadow-md hover:bg-red-600 transition-colors duration-300 ease-in-out focus:outline-none"
+            disabled={loadingGoogle || loadingSignUp} // Disable if either loading state is true
           >
-            <FaGoogle className="mr-2" />
-            Sign up with Google
+            {loadingGoogle ? (
+              <>
+                <FaSpinner className="animate-spin text-white text-xl mr-2" />
+                Signing up...
+              </>
+            ) : (
+              <>
+                <FaGoogle className="mr-2" />
+                Sign up with Google
+              </>
+            )}
           </button>
         </div>
       </div>
