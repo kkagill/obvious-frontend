@@ -20,3 +20,17 @@ progress::-webkit-progress-value {
     @apply !capitalize;
   }
 }
+
+@layer utilities {
+  .animate-shimmer {
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.2) 20%,
+      rgba(255, 255, 255, 0.1) 40%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+}

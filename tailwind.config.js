@@ -19,6 +19,24 @@ module.exports = {
         shimmer: "shimmer 3s ease-out infinite alternate",
       },
       keyframes: {
+        shimmer: {
+          '0%': { backgroundPosition: '-100% 0' },
+          '100%': { backgroundPosition: '100% 0' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideInUp: {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(100px)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)',
+          },
+        },
         opacity: {
           "0%": { opacity: 0 },
           "100%": { opacity: 1 },
@@ -54,6 +72,11 @@ module.exports = {
           "50%": { backgroundPosition: "100% 50%" },
           "100%": { backgroundPosition: "0% 50%" },
         },
+      },
+      animation: {
+        shimmer: 'shimmer 2s infinite linear',
+        fadeIn: 'fadeIn 1.5s ease-in-out',
+        slideInUp: 'slideInUp 1.5s ease-in-out',
       },
     },
   },

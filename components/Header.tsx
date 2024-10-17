@@ -14,26 +14,26 @@ const links: {
   label: string;
 }[] = [
     {
-      href: "/#pricing",
-      label: "Pricing",
+      href: "/#contest",
+      label: "AI Trailer Contest",
     },
     {
-      href: "/#testimonials",
-      label: "Reviews",
+      href: "/#guidelines",
+      label: "Guidelines",
     },
     {
-      href: "/#faq",
-      label: "FAQ",
+      href: "/#gallery",
+      label: "Gallery",
     },
   ];
 
 // CTA for both Sign In and Register buttons
-const cta: JSX.Element = (
-  <div className="flex space-x-2">
-    <ButtonSignin extraStyle="btn-primary" />
-    <ButtonRegister extraStyle="btn-secondary" />
-  </div>
-);
+// const cta: JSX.Element = (
+//   <div className="flex space-x-2">
+//     <ButtonSignin extraStyle="btn-primary" />
+//     <ButtonRegister extraStyle="btn-secondary" />
+//   </div>
+// );
 
 const Header = () => {
   const searchParams = useSearchParams();
@@ -45,7 +45,7 @@ const Header = () => {
   }, [searchParams]);
 
   return (
-    <header className="bg-base-200">
+    <header>
       <nav
         className="container flex items-center justify-between px-8 py-4 mx-auto"
         aria-label="Global"
@@ -110,9 +110,9 @@ const Header = () => {
         </div>
 
         {/* CTA on large screens */}
-        <div className="hidden lg:flex lg:justify-end lg:flex-1">
+        {/* <div className="hidden lg:flex lg:justify-end lg:flex-1">
           {cta}
-        </div>
+        </div> */}
       </nav>
 
       {/* Mobile menu */}
@@ -180,10 +180,10 @@ const Header = () => {
             <div className="divider"></div>
 
             {/* CTA on mobile */}
-            <div className="flex flex-col space-y-4">
+            {/* <div className="flex flex-col space-y-4">
               <ButtonSignin extraStyle="btn-primary" />
               <ButtonRegister extraStyle="btn-secondary" />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
