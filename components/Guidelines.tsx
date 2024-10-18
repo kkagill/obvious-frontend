@@ -24,6 +24,10 @@ const Guidelines = () => {
           Guidelines
         </h2>
 
+        {error && (
+          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+        )}
+
         <div className="max-w-3xl mx-auto text-left">
           <h3 className="font-bold text-2xl mb-4">1. Visuals</h3>
           <ul className="list-disc ml-6 mb-8">
