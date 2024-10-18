@@ -5,7 +5,7 @@ import config from "@/config";
 const Guidelines = () => {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [error, setError] = useState(''); 
-
+ 
   const handleGoogleLogin = async () => {
     setLoadingGoogle(true);
     try {
