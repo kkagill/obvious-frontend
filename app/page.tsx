@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import Keyword from '@/components/Keyword';
 import Contest from '@/components/Contest';
 import Guidelines from '@/components/Guidelines';
+import CTA from '@/components/CTA';
 
 type Props = {
   searchParams: {
@@ -69,6 +70,7 @@ export default function Home({ searchParams }: Props) {
         <Contest />
         <Keyword />
         <Guidelines />
+        <CTA />
       </main>
 
       <Footer />

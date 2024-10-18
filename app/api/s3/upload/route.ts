@@ -4,6 +4,9 @@ import { authOptions } from "@/libs/next-auth";
 
 // Define an interface for the uploaded file metadata
 interface UploadedFile {
+  theme: string;
+  description: string;
+  socialShareUrl: string;
   fileName: string;
   fileExtension: string;
   fileSize: string;
@@ -16,15 +19,17 @@ export async function POST(req: NextRequest) {
   const data = await req.json();
 
   const {
-    clipAmount,
-    duration,
+    theme,
+    description,
+    socialShareUrl,
     totalVideoSeconds,
     s3FolderName,
     uploadedFiles,
     totalVideoSizeMB
   }: {
-    clipAmount: string;
-    duration: string;
+    theme: string;
+    description: string;
+    socialShareUrl: string;
     totalVideoSeconds: string;
     s3FolderName: string;
     uploadedFiles: UploadedFile[];
@@ -32,8 +37,9 @@ export async function POST(req: NextRequest) {
   } = data;
 
   const payload = {
-    clipAmount: parseInt(clipAmount, 10),
-    duration: parseInt(duration, 10),
+    theme,
+    description,
+    socialShareUrl,
     totalVideoSeconds: parseInt(totalVideoSeconds, 10),
     totalVideoSizeMB: parseFloat(totalVideoSizeMB),
     s3FolderName,

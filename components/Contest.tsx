@@ -1,15 +1,24 @@
 "use client";
 
 import Image from "next/image";
-import router from "next/router";
 import { useState } from "react";
+import { signIn } from 'next-auth/react';
+import config from "@/config";
 
 const Contest = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
-
-  const handleConfirm = () => {
-    // Navigate to the submit page
-    router.push('/submit-page'); // Update with actual submit page route
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [error, setError] = useState('');
+  
+  const handleGoogleLogin = async () => {
+    setLoadingGoogle(true);
+    try {
+      await signIn('google', { callbackUrl: config.auth.callbackUrl });
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setError('An error occurred with Google sign-in. Please try again.');
+      setLoadingGoogle(false);
+    }
   };
 
   return (
@@ -47,6 +56,10 @@ const Contest = () => {
               Winners will be revealed on <strong>November 20th</strong>.
             </p>
 
+            {error && (
+              <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+            )}
+
             {!showConfirmation ? (
               <div className="mt-12">
                 <button
@@ -60,8 +73,9 @@ const Contest = () => {
               <div className="mt-12">
                 <p className="text-lg font-semibold mb-4">Did you read the Guidelines below?</p>
                 <button
-                  onClick={handleConfirm}
+                  onClick={handleGoogleLogin}
                   className="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full mr-4 transition duration-300"
+                  disabled={loadingGoogle}
                 >
                   Yes, Proceed
                 </button>
@@ -78,7 +92,7 @@ const Contest = () => {
           {/* Right Side - Image */}
           <div className="flex justify-center md:justify-end">
             <Image
-              src="/ai-2.webp" // Make sure to update this with the correct image path
+              src="/ai-2.webp"
               alt="AI Film Trailer Contest"
               width={600}
               height={400}

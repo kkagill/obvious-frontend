@@ -1,4 +1,22 @@
+import { useState } from "react";
+import { signIn } from 'next-auth/react';
+import config from "@/config";
+
 const Guidelines = () => {
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleGoogleLogin = async () => {
+    setLoadingGoogle(true);
+    try {
+      await signIn('google', { callbackUrl: config.auth.callbackUrl });
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      setError('An error occurred with Google sign-in. Please try again.');
+      setLoadingGoogle(false);
+    }
+  };
+
   return (
     <section className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 text-gray-200" id="guidelines">
       <div className="max-w-7xl mx-auto px-6 py-12 sm:px-8 sm:py-16 md:py-32 text-center">
@@ -64,12 +82,13 @@ const Guidelines = () => {
         </div>
 
         <div className="mt-12">
-          <a
-            href="/enter-contest" // Update this with the actual URL or modal trigger
+          <button
+            onClick={handleGoogleLogin}
             className="inline-block bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-full transition duration-300"
+            disabled={loadingGoogle}
           >
             Enter the Contest
-          </a>
+          </button>
         </div>
       </div>
     </section>
