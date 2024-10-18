@@ -2,7 +2,6 @@
 
 import React, { useState, useRef } from "react";
 import { toast } from "react-hot-toast";
-import apiClient from "@/libs/api";
 
 // This component is used to collect the emails from the landing page
 // You'd use this if your product isn't ready yet or you want to collect leads
@@ -19,7 +18,7 @@ const ButtonLead = ({ extraStyle }: { extraStyle?: string }) => {
 
     setIsLoading(true);
     try {
-      await apiClient.post("/lead", { email });
+      //await apiClient.post("/lead", { email });
 
       toast.success("Thanks for joining the waitlist!");
 

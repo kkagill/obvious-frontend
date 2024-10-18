@@ -10,7 +10,6 @@ import { FaSpinner } from "react-icons/fa";
 import toast from "react-hot-toast";
 import Clip from "@/components/dashboard/Clip";
 import { useSession } from "next-auth/react";
-import useInterceptor from "@/hooks/useInterceptor";
 
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);

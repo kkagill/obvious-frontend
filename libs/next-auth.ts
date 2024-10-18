@@ -56,7 +56,9 @@ export const authOptions: AuthOptions = {
   },
   events: {
     async signOut({ token }) {
+      // @ts-ignore
       const refreshToken = token?.jwt?.refresh?.token;
+      
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/logout`, {
           method: 'POST',
@@ -141,7 +143,9 @@ export const authOptions: AuthOptions = {
       return { ...token, ...user };
     },
     async session({ session, token }) {
+      // @ts-ignore
       session.user.id = token.id;
+      // @ts-ignore
       session.user.jwt = token.jwt; // Attach JWT tokens to the session.. hacky way, but it works..
       return session;
     },

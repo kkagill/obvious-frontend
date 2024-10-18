@@ -40,10 +40,12 @@ export const middleware: NextMiddleware = async (request: NextRequest) => {
 
   let response = NextResponse.next();
 
+  // @ts-ignore
   const updateToken = shouldUpdateToken(new Date(token?.jwt?.access?.expires));
   
   if (updateToken) {
     try {
+      // @ts-ignore
       const newTokens = await refreshTokens(token?.jwt?.refresh?.token);
       const newSessionToken = await encode({
         secret: process.env.NEXTAUTH_SECRET as string,

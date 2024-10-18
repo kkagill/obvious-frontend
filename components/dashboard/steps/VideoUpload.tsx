@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
-import apiClient from '@/libs/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface VideoUploadProps {

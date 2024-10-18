@@ -2,7 +2,6 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import { createCheckout } from "@/libs/stripe";
-import prisma from "@/libs/prisma";
 import config from "@/config";
 
 // This function is used to create a Stripe Checkout Session (one-time payment or subscription)
@@ -40,18 +39,18 @@ export async function POST(req: NextRequest) {
     
     const { priceId, mode, successUrl, cancelUrl } = body;
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id: session?.user?.id,
-      },
-    });
+    // const user = await prisma.user.findUnique({
+    //   where: {
+    //     id: session?.user?.id,
+    //   },
+    // });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found." },
-        { status: 400 }
-      );
-    }
+    // if (!user) {
+    //   return NextResponse.json(
+    //     { error: "User not found." },
+    //     { status: 400 }
+    //   );
+    // }
 
     const stripeSessionURL = await createCheckout({
       priceId,
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
       user: {
         email: session?.user?.email,
         // If the user has already purchased, it will automatically prefill it's credit card
-        customerId: user?.customerId,
+        //customerId: user?.customerId,
       },
       // If you send coupons from the frontend, you can pass it here
       // couponId: body.couponId,

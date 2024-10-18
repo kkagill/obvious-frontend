@@ -2,7 +2,6 @@ import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/libs/next-auth";
 import { createCustomerPortal } from "@/libs/stripe";
-import prisma from "@/libs/prisma";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -11,34 +10,34 @@ export async function POST(req: NextRequest) {
     try {
       const body = await req.json();
 
-      const user = await prisma.user.findUnique({
-        where: {
-          id: session?.user?.id,
-        },
-      });
+    //   const user = await prisma.user.findUnique({
+    //     where: {
+    //       id: session?.user?.id,
+    //     },
+    //   });
 
-      if (!user?.customerId) {
-        return NextResponse.json(
-          {
-            error:
-              "You don't have a billing account yet. Make a purchase first.",
-          },
-          { status: 400 }
-        );
-      } else if (!body.returnUrl) {
-        return NextResponse.json(
-          { error: "Return URL is required" },
-          { status: 400 }
-        );
-      }
+    //   if (!user?.customerId) {
+    //     return NextResponse.json(
+    //       {
+    //         error:
+    //           "You don't have a billing account yet. Make a purchase first.",
+    //       },
+    //       { status: 400 }
+    //     );
+    //   } else if (!body.returnUrl) {
+    //     return NextResponse.json(
+    //       { error: "Return URL is required" },
+    //       { status: 400 }
+    //     );
+    //   }
 
-      const stripePortalUrl = await createCustomerPortal({
-        customerId: user.customerId,
-        returnUrl: body.returnUrl,
-      });
+    //   const stripePortalUrl = await createCustomerPortal({
+    //     customerId: user.customerId,
+    //     returnUrl: body.returnUrl,
+    //   });
 
       return NextResponse.json({
-        url: stripePortalUrl,
+        //url: stripePortalUrl,
       });
     } catch (e) {
       console.error(e);

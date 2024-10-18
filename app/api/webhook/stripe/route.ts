@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import configFile from "@/config";
 import { findCheckoutSession } from "@/libs/stripe";
-import prisma from "@/libs/prisma";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-08-16",
@@ -50,28 +49,28 @@ export async function POST(req: NextRequest) {
 
         if (!plan) break;
 
-        await prisma.$transaction(async (prisma) => {
-          const user = await prisma.user.update({
-            where: { id: userId },
-            data: {
-              customerId: customerId.toString(),
-              availableCredits: {
-                increment: plan.credits,
-              },
-            },
-          });
+        // await prisma.$transaction(async (prisma) => {
+        //   const user = await prisma.user.update({
+        //     where: { id: userId },
+        //     data: {
+        //       customerId: customerId.toString(),
+        //       availableCredits: {
+        //         increment: plan.credits,
+        //       },
+        //     },
+        //   });
 
-          await prisma.creditPurchaseHistory.create({
-            data: {
-              userId: userId,
-              priceId: priceId,
-              credits: plan.credits,
-              price: plan.price,
-            },
-          });
+        //   await prisma.creditPurchaseHistory.create({
+        //     data: {
+        //       userId: userId,
+        //       priceId: priceId,
+        //       credits: plan.credits,
+        //       price: plan.price,
+        //     },
+        //   });
 
-          return user;
-        });
+        //   return user;
+        // });
 
         // Extra: send email with user link, product page, etc...
         // try {
