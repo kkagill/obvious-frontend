@@ -39,7 +39,7 @@ const Header = () => {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  // Close the menu when the route changes (e.g., user clicks a link)
+  // Close the menu when the route change (e.g., user clicks a link)
   useEffect(() => {
     setIsOpen(false);
   }, [searchParams]);
