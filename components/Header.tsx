@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import ButtonSignin from "./ButtonSignin";
-import ButtonRegister from "./ButtonRegister";
+// import ButtonSignin from "./ButtonSignin";
+// import ButtonRegister from "./ButtonRegister";
 import logo from "@/app/icon.png";
 import config from "@/config";
 
