@@ -8,7 +8,7 @@ import LoadingSpinnerWithProgress from "@/components/LoadingSpinnerWithProgress"
 import { useRouter } from 'next/navigation';
 
 const Contest = () => {
-  const maxAttempts = 2;
+  const maxAttempts = 3;
   const theme = 'love';
   const router = useRouter();
 
