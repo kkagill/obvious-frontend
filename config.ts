@@ -3,10 +3,10 @@ import { ConfigProps } from "./types/config";
 
 const config = {
   // REQUIRED
-  appName: "Obvious",
+  appName: "OBVIOUS",
   // REQUIRED: a short description of your app for SEO tags (can be overwritten)
   appDescription:
-    "The NextJS boilerplate with all you need to build your SaaS, AI tool, or any other web app.",
+    "Unleash Creativity AI Trailer Contests",
   // REQUIRED (no https://, not trialing slash at the end, just the naked domain)
   domainName: "obvious.app",
   crisp: {
