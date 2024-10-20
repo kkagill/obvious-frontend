@@ -17,6 +17,8 @@ export const getSEOTags = ({
   canonicalUrlRelative?: string;
   extraTags?: Record<string, any>;
 } = {}) => {
+  const isProduction = process.env.NODE_ENV === "production";
+
   return {
     // up to 50 characters (what does your app do for the user?) > your main should be here
     title: title || config.appName,
@@ -49,14 +51,14 @@ export const getSEOTags = ({
       type: "website",
     },
 
-    twitter: {
-      title: openGraph?.title || config.appName,
-      description: openGraph?.description || config.appDescription,
-      // If you add an twitter-image.(jpg|jpeg|png|gif) image to the /app folder, you don't need the code below
-      // images: [openGraph?.image || defaults.og.image],
-      card: "summary_large_image",
-      creator: "@marc_louvion",
-    },
+    // twitter: {
+    //   title: openGraph?.title || config.appName,
+    //   description: openGraph?.description || config.appDescription,
+    //   // If you add an twitter-image.(jpg|jpeg|png|gif) image to the /app folder, you don't need the code below
+    //   // images: [openGraph?.image || defaults.og.image],
+    //   card: "summary_large_image",
+    //   creator: "@marc_louvion",
+    // },
 
     // If a canonical URL is given, we add it. The metadataBase will turn the relative URL into a fully qualified URL
     ...(canonicalUrlRelative && {
@@ -65,6 +67,10 @@ export const getSEOTags = ({
 
     // If you want to add extra tags, you can pass them here
     ...extraTags,
+    // Conditionally add noindex, nofollow if in development or staging
+    ...(!isProduction && {
+      robots: "noindex, nofollow",
+    }),
   };
 };
 
@@ -88,8 +94,8 @@ export const renderSchemaTags = () => {
           image: `https://${config.domainName}/icon.png`,
           url: `https://${config.domainName}/`,
           author: {
-            "@type": "Person",
-            name: "SJ Shon",
+            "@type": "Company",
+            name: "Obvious",
           },
           datePublished: "2024-05-30",
           applicationCategory: "SaaS",
@@ -98,13 +104,13 @@ export const renderSchemaTags = () => {
             ratingValue: "4.8",
             ratingCount: "12",
           },
-          offers: [
-            {
-              "@type": "Offer",
-              price: "9.00",
-              priceCurrency: "USD",
-            },
-          ],
+          // offers: [
+          //   {
+          //     "@type": "Offer",
+          //     price: "9.00",
+          //     priceCurrency: "USD",
+          //   },
+          // ],
         }),
       }}
     ></script>
